@@ -1,4 +1,4 @@
-const CACHE_NAME = 'tt-teklif-v1';
+const CACHE_NAME = 'tt-teklif-v2';
 const ASSETS = [
   './index.html',
   './manifest.json',
@@ -22,8 +22,17 @@ self.addEventListener('activate', event => {
   self.clients.claim();
 });
 
+// Network-first: internet varsa her zaman güncel dosyayı çeker ve önbelleğe yazar,
+// internet yoksa önbellekteki son sürümü açar.
 self.addEventListener('fetch', event => {
+  if (event.request.method !== 'GET') return;
   event.respondWith(
-    caches.match(event.request).then(cached => cached || fetch(event.request))
+    fetch(event.request)
+      .then(response => {
+        const copy = response.clone();
+        caches.open(CACHE_NAME).then(cache => cache.put(event.request, copy));
+        return response;
+      })
+      .catch(() => caches.match(event.request))
   );
 });

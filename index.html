@@ -724,7 +724,7 @@ async function buildPdfBlob(){
   await new Promise(r => requestAnimationFrame(() => requestAnimationFrame(r)));
 
   const canvas = await html2canvas(sheet, {
-    scale: 2,
+    scale: 1.5,
     backgroundColor: '#ffffff',
     useCORS: true,
     width: 794,
@@ -735,9 +735,11 @@ async function buildPdfBlob(){
   sheet.style.maxWidth = originalMaxWidth;
   sheet.style.margin = originalMargin;
 
-  const imgData = canvas.toDataURL('image/png');
+  // JPEG at 0.85 quality instead of lossless PNG — visually near-identical
+  // for a text/table sheet like this, but a fraction of the file size.
+  const imgData = canvas.toDataURL('image/jpeg', 0.85);
   const { jsPDF } = window.jspdf;
-  const pdf = new jsPDF('p', 'pt', 'a4');
+  const pdf = new jsPDF('p', 'pt', 'a4', true); // true = enable PDF compression
   const pageWidth = pdf.internal.pageSize.getWidth();
   const pageHeight = pdf.internal.pageSize.getHeight();
   const imgWidth = pageWidth;
@@ -745,16 +747,16 @@ async function buildPdfBlob(){
 
   if(imgHeight <= pageHeight){
     // Fits on a single page — center it vertically-ish (top align) at full width
-    pdf.addImage(imgData, 'PNG', 0, 0, imgWidth, imgHeight);
+    pdf.addImage(imgData, 'JPEG', 0, 0, imgWidth, imgHeight);
   } else {
     let heightLeft = imgHeight;
     let position = 0;
-    pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+    pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
     heightLeft -= pageHeight;
     while(heightLeft > 0){
       position = heightLeft - imgHeight;
       pdf.addPage();
-      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+      pdf.addImage(imgData, 'JPEG', 0, position, imgWidth, imgHeight);
       heightLeft -= pageHeight;
     }
   }
