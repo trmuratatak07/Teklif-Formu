@@ -471,6 +471,227 @@
   }
   .ficon .dot svg{width:18px;height:18px;}
 
+  /* ---------- TEKLİF GEÇMİŞİ ---------- */
+  .hist-btn{
+    width:100%;
+    margin-top:8px;
+    background:#fff;
+    color:var(--navy);
+    border:2px solid var(--navy);
+    padding:11px;
+    border-radius:10px;
+    font-family:'Baloo 2',sans-serif;
+    font-size:14.5px;
+    font-weight:700;
+    cursor:pointer;
+  }
+  .hist-btn:active{background:#eef2f8;}
+  .hist-btn .cnt{
+    display:inline-block;
+    background:var(--teal);
+    color:#fff;
+    border-radius:20px;
+    padding:0 8px;
+    margin-left:6px;
+    font-size:12px;
+    line-height:20px;
+  }
+  .hist-overlay{
+    display:none;
+    position:fixed;
+    inset:0;
+    z-index:1000;
+    background:var(--bg);
+    overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+  }
+  .hist-overlay.open{display:block;}
+  .hist-head{
+    position:sticky;
+    top:0;
+    z-index:2;
+    background:var(--navy);
+    padding:12px 14px 10px;
+    color:#fff;
+  }
+  .hist-top{display:flex;align-items:center;justify-content:space-between;}
+  .hist-top h2{
+    margin:0;
+    font-family:'Baloo 2',sans-serif;
+    font-size:20px;
+  }
+  .hist-close{
+    background:rgba(255,255,255,.15);
+    border:none;
+    color:#fff;
+    width:36px;height:36px;
+    border-radius:50%;
+    font-size:18px;
+    cursor:pointer;
+  }
+  #histSearch{
+    width:100%;
+    margin-top:10px;
+    padding:10px 12px;
+    border-radius:10px;
+    border:none;
+    font-size:14px;
+    font-family:inherit;
+  }
+  .hist-chips{
+    display:flex;
+    gap:6px;
+    overflow-x:auto;
+    padding:10px 0 2px;
+  }
+  .chip{
+    flex:0 0 auto;
+    border:1px solid rgba(255,255,255,.35);
+    background:transparent;
+    color:#fff;
+    border-radius:20px;
+    padding:6px 12px;
+    font-size:12.5px;
+    font-weight:600;
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  .chip.on{background:var(--teal);border-color:var(--teal);}
+  .hist-body{padding:12px 12px 90px;max-width:720px;margin:0 auto;}
+  .hist-empty{
+    text-align:center;
+    color:var(--muted);
+    padding:50px 20px;
+    font-size:14px;
+    line-height:1.6;
+  }
+  .rec{
+    background:#fff;
+    border:1px solid var(--line);
+    border-left:6px solid var(--muted);
+    border-radius:12px;
+    padding:12px;
+    margin-bottom:12px;
+    box-shadow:0 2px 8px rgba(11,33,72,0.05);
+  }
+  .rec.s-verildi{border-left-color:#2d6cdf;}
+  .rec.s-beklemede{border-left-color:#8a96ab;}
+  .rec.s-donus{border-left-color:#8e44ad;}
+  .rec.s-olumlu{border-left-color:#1f9d55;}
+  .rec.s-olumsuz{border-left-color:var(--accent-red);}
+  .rec.s-ertelendi{border-left-color:#f0a020;}
+  .edit-bar{
+    display:none;
+    background:#fff3cd;
+    color:#8a5a00;
+    border-radius:8px;
+    padding:8px 10px;
+    font-size:12.5px;
+    margin-top:10px;
+    line-height:1.5;
+  }
+  .edit-bar a{color:#8a5a00;font-weight:700;margin-left:6px;}
+  .rec-top{display:flex;gap:8px;align-items:flex-start;}
+  .rec-firma{
+    flex:1;
+    font-family:'Baloo 2',sans-serif;
+    font-size:17px;
+    font-weight:700;
+    color:var(--navy);
+    border:none;
+    border-bottom:1px dashed var(--line);
+    background:transparent;
+    padding:2px 0;
+    min-width:0;
+  }
+  .rec-del{
+    background:none;border:none;color:var(--accent-red);
+    font-size:18px;cursor:pointer;padding:2px 6px;
+  }
+  .rec-meta{font-size:12px;color:var(--muted);margin:4px 0 2px;}
+  .rec-price{font-size:13px;font-weight:600;color:var(--navy);margin:2px 0;}
+  .rec-items{font-size:12px;color:var(--muted);margin:2px 0 8px;line-height:1.5;}
+  .rec-row{display:flex;gap:8px;margin-top:8px;flex-wrap:wrap;}
+  .rec-row > div{flex:1;min-width:130px;}
+  .rec label{display:block;font-size:11px;font-weight:700;color:var(--muted);margin-bottom:3px;}
+  .rec select,.rec input[type=date],.rec textarea{
+    width:100%;
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:8px;
+    font-size:14px;
+    font-family:inherit;
+    background:#fff;
+    color:var(--ink);
+  }
+  .rec textarea{min-height:54px;resize:vertical;}
+  .badge-end{
+    display:inline-block;
+    margin-top:6px;
+    padding:3px 9px;
+    border-radius:20px;
+    font-size:11.5px;
+    font-weight:700;
+    background:#fff3cd;
+    color:#8a5a00;
+  }
+  .badge-end.red{background:#fde2e0;color:#b3261e;}
+  .rec-load{
+    margin-top:10px;
+    background:transparent;
+    border:1px solid var(--teal);
+    color:var(--teal-dark);
+    border-radius:8px;
+    padding:7px 12px;
+    font-size:12.5px;
+    font-weight:700;
+    cursor:pointer;
+  }
+  .hist-foot{
+    position:fixed;
+    left:0;right:0;bottom:0;
+    background:#fff;
+    border-top:1px solid var(--line);
+    display:flex;
+    gap:8px;
+    padding:10px 12px;
+    z-index:3;
+  }
+  .hist-foot button,.hist-foot label{
+    flex:1;
+    text-align:center;
+    background:#f3f7fb;
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:10px;
+    font-size:13px;
+    font-weight:700;
+    color:var(--navy);
+    cursor:pointer;
+  }
+  .toast{
+    position:fixed;
+    left:50%;
+    bottom:28px;
+    transform:translateX(-50%) translateY(20px);
+    background:var(--navy);
+    color:#fff;
+    padding:11px 18px;
+    border-radius:24px;
+    font-size:13.5px;
+    font-weight:600;
+    opacity:0;
+    pointer-events:none;
+    transition:all .25s;
+    z-index:2000;
+    max-width:90%;
+    text-align:center;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  @media print{
+    .hist-overlay,.toast{display:none !important;}
+  }
+
   @media print{
     body{background:#fff;}
     .panel{display:none;}
@@ -511,7 +732,12 @@
 
     <button class="print-btn" id="shareBtn" style="background:#1f7a5c;margin-top:10px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align:-3px;margin-right:4px;"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>PDF Paylaş (WhatsApp / Mail)</button>
     <p class="pdf-hint" id="shareHint">Direkt WhatsApp, Mail veya başka bir uygulamaya PDF olarak gönderir.</p>
+    <div class="edit-bar" id="editBar"></div>
+    <button class="hist-btn" id="saveBtn" onclick="saveCurrentOffer(false)">✅ Teklifi Kaydet</button>
+    <p class="pdf-hint">PDF'i paylaşınca teklif otomatik kaydedilir. Başka yolla gönderdiysen buradan elle kaydedebilirsin.</p>
+    <button class="hist-btn" onclick="openHist()">📋 Teklif Geçmişi<span class="cnt" id="histCnt">0</span></button>
     <button class="reset-btn" onclick="resetAll()">Tüm Seçimleri Sıfırla</button>
+    <p class="pdf-hint" style="margin-top:14px;">Sürüm 3 · küçük PDF + teklif geçmişi</p>
   </div>
 
   <!-- RIGHT TEKLIF FORM -->
@@ -610,6 +836,24 @@
   </div>
 </div>
 
+<!-- TEKLİF GEÇMİŞİ -->
+<div class="hist-overlay" id="histOverlay">
+  <div class="hist-head">
+    <div class="hist-top">
+      <h2>📋 Teklif Geçmişi</h2>
+      <button class="hist-close" onclick="closeHist()" aria-label="Kapat">✕</button>
+    </div>
+    <input type="search" id="histSearch" placeholder="Firma veya not ara...">
+    <div class="hist-chips" id="histChips"></div>
+  </div>
+  <div class="hist-body" id="histList"></div>
+  <div class="hist-foot">
+    <button onclick="exportHist()">💾 Yedekle</button>
+    <label>📥 Yedekten Yükle<input type="file" id="histImport" accept=".json,application/json" hidden></label>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
 <script>
 // Package data sourced from the user's 24Ay_Tarife_Hesaplayici.xlsx
 const PACKAGES = [
@@ -698,6 +942,8 @@ function resetAll(){
     const id = 'q_' + p.name.replace(/\s+/g,'_');
     document.getElementById(id).value = 0;
   });
+  editingId = null;
+  updateEditUI();
   recalc();
 }
 
@@ -735,18 +981,37 @@ async function buildPdfBlob(){
   sheet.style.maxWidth = originalMaxWidth;
   sheet.style.margin = originalMargin;
 
-  // JPEG at 0.85 quality instead of lossless PNG — visually near-identical
-  // for a text/table sheet like this, but a fraction of the file size.
-  const imgData = canvas.toDataURL('image/jpeg', 0.85);
+  // JPEG (kayıplı) sıkıştırma: metin/tablo sayfası için görüntü neredeyse aynı kalır,
+  // dosya ise PNG'ye göre çok küçülür. Yine de büyük çıkarsa kendiliğinden küçültülür.
+  const MAX_BYTES = 2.5 * 1024 * 1024;
+  let quality = 0.85;
+  let work = canvas;
+  let blob = pdfFromCanvas(work, quality);
+  for(let i = 0; i < 4 && blob.size > MAX_BYTES; i++){
+    const small = document.createElement('canvas');
+    small.width = Math.round(work.width * 0.8);
+    small.height = Math.round(work.height * 0.8);
+    const ctx = small.getContext('2d');
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, small.width, small.height);
+    ctx.drawImage(work, 0, 0, small.width, small.height);
+    work = small;
+    quality = Math.max(0.5, quality - 0.1);
+    blob = pdfFromCanvas(work, quality);
+  }
+  return blob;
+}
+
+function pdfFromCanvas(canvas, quality){
+  const imgData = canvas.toDataURL('image/jpeg', quality);
   const { jsPDF } = window.jspdf;
-  const pdf = new jsPDF('p', 'pt', 'a4', true); // true = enable PDF compression
+  const pdf = new jsPDF('p', 'pt', 'a4', true); // true = PDF sıkıştırması açık
   const pageWidth = pdf.internal.pageSize.getWidth();
   const pageHeight = pdf.internal.pageSize.getHeight();
   const imgWidth = pageWidth;
   const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
   if(imgHeight <= pageHeight){
-    // Fits on a single page — center it vertically-ish (top align) at full width
     pdf.addImage(imgData, 'JPEG', 0, 0, imgWidth, imgHeight);
   } else {
     let heightLeft = imgHeight;
@@ -775,6 +1040,8 @@ document.getElementById('shareBtn').addEventListener('click', async function(){
     }
     const blob = await buildPdfBlob();
     const file = new File([blob], 'teklif.pdf', {type:'application/pdf'});
+    hint.style.color = '';
+    hint.innerText = 'PDF hazırlandı: ' + (blob.size / 1048576).toFixed(2).replace('.', ',') + ' MB';
 
     if(navigator.canShare && navigator.canShare({files:[file]})){
       await navigator.share({
@@ -782,6 +1049,7 @@ document.getElementById('shareBtn').addEventListener('click', async function(){
         title:'Türk Telekom Kurumsal Teklif',
         text:'Teklifinizi ekte bulabilirsiniz.'
       });
+      saveCurrentOffer(true);
     } else {
       // fallback: trigger a normal download
       const url = URL.createObjectURL(blob);
@@ -792,6 +1060,7 @@ document.getElementById('shareBtn').addEventListener('click', async function(){
       a.click();
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
+      saveCurrentOffer(true);
       hint.style.color = '#c0392b';
       hint.innerText = 'Bu tarayıcıda direkt paylaşım desteklenmiyor — PDF indirildi, dosyalardan seçip gönderebilirsiniz.';
     }
@@ -809,7 +1078,350 @@ document.getElementById('shareBtn').addEventListener('click', async function(){
   }
 });
 
+// =====================================================================
+//  TEKLİF GEÇMİŞİ — kayıtlar bu cihazda (localStorage) saklanır
+// =====================================================================
+const HIST_KEY = 'tt_teklifler_v1';
+const STATUSES = [
+  {k:'verildi',   t:'Teklif Verildi'},
+  {k:'beklemede', t:'Beklemede'},
+  {k:'donus',     t:'Geri Dönüş Yapılacak'},
+  {k:'olumlu',    t:'Olumlu'},
+  {k:'olumsuz',   t:'Olumsuz'},
+  {k:'ertelendi', t:'Ertelendi'}
+];
+let editingId = null;
+let histFilter = 'all';
+let toastTimer = null;
+
+function esc(s){
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
+}
+function loadRecs(){
+  try{
+    const r = JSON.parse(localStorage.getItem(HIST_KEY) || '[]');
+    return Array.isArray(r) ? r : [];
+  }catch(e){ return []; }
+}
+function saveRecs(list){
+  try{
+    localStorage.setItem(HIST_KEY, JSON.stringify(list));
+    return true;
+  }catch(e){
+    toast('Kayıt yapılamadı (tarayıcı depolaması kapalı olabilir)');
+    return false;
+  }
+}
+function newId(){ return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+function qtyId(name){ return 'q_' + name.replace(/\s+/g,'_'); }
+
+function currentItems(){
+  const out = [];
+  PACKAGES.forEach(p => {
+    const q = parseFloat(document.getElementById(qtyId(p.name)).value) || 0;
+    if(q > 0) out.push({name:p.name, qty:q});
+  });
+  return out;
+}
+function computeTotals(){
+  const d1 = parseFloat(document.getElementById('disc1').value) || 0;
+  const d2 = parseFloat(document.getElementById('disc2').value) || 0;
+  let a = 0, b = 0;
+  PACKAGES.forEach(p => {
+    const q = parseFloat(document.getElementById(qtyId(p.name)).value) || 0;
+    a += q * p.price1 * (1 - d1/100);
+    b += q * p.price2 * (1 - d2/100);
+  });
+  return {ilk12:a, son12:b, d1:d1, d2:d2};
+}
+function currentFirma(){
+  const el = document.querySelector('.company-name');
+  const t = (el.innerText || '').replace(/\s+/g,' ').trim();
+  return (!t || t === 'ŞİRKET ADI') ? '(Firma adı yok)' : t;
+}
+
+// ---- tarih yardımcıları ----
+function fmtDT(iso){
+  const d = new Date(iso);
+  if(isNaN(d)) return '';
+  return d.toLocaleDateString('tr-TR',{day:'2-digit',month:'2-digit',year:'numeric'}) + ' ' +
+         d.toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'});
+}
+function daysUntil(ymd){
+  if(!ymd) return null;
+  const p = ymd.split('-').map(Number);
+  if(p.length !== 3 || p.some(isNaN)) return null;
+  const today = new Date(); today.setHours(0,0,0,0);
+  return Math.round((new Date(p[0], p[1]-1, p[2]) - today) / 86400000);
+}
+
+// ---- kaydetme ----
+function saveCurrentOffer(auto){
+  const items = currentItems();
+  if(!items.length){
+    if(!auto) toast('Önce en az bir paket adedi girin');
+    return;
+  }
+  const t = computeTotals();
+  const firma = currentFirma();
+  const nowIso = new Date().toISOString();
+  const list = loadRecs();
+
+  let rec = editingId ? list.find(r => r.id === editingId) : null;
+  if(rec){
+    // var olan kaydı güncelle (durum / not / tarihler korunur)
+    rec.firma = firma; rec.items = items;
+    rec.ilk12 = t.ilk12; rec.son12 = t.son12; rec.disc1 = t.d1; rec.disc2 = t.d2;
+    if(auto) rec.tarih = nowIso;
+    if(saveRecs(list)) toast('Değişiklikler kaydedildi ✓');
+  } else {
+    // aynı gün aynı firmaya aynı tutarlı teklif tekrar kaydedilirse çoğaltma
+    const today = nowIso.slice(0,10);
+    const dup = list.find(r => (r.firma||'').toLowerCase() === firma.toLowerCase() &&
+      Math.abs((r.ilk12||0) - t.ilk12) < 0.01 && Math.abs((r.son12||0) - t.son12) < 0.01 &&
+      (r.tarih||'').slice(0,10) === today);
+    if(dup){
+      dup.tarih = nowIso; dup.items = items;
+      if(saveRecs(list)) toast('Teklif zaten kayıtlı, tarihi güncellendi ✓');
+    } else {
+      list.unshift({
+        id:newId(), firma:firma, tarih:nowIso,
+        ilk12:t.ilk12, son12:t.son12, disc1:t.d1, disc2:t.d2,
+        items:items, durum:'verildi', not:'', donus:'', bitis:''
+      });
+      if(saveRecs(list)) toast(auto ? 'Teklif geçmişe kaydedildi ✓' : 'Teklif kaydedildi ✓');
+    }
+  }
+  document.getElementById('histCnt').textContent = loadRecs().length;
+}
+
+function updateRec(id, field, val){
+  const list = loadRecs();
+  const r = list.find(x => x.id === id);
+  if(!r) return;
+  r[field] = val;
+  saveRecs(list);
+}
+
+// ---- liste ekranı ----
+function badgesFor(r){
+  let h = '';
+  const closed = (r.durum === 'olumlu' || r.durum === 'olumsuz');
+  if(r.donus && !closed){
+    const n = daysUntil(r.donus);
+    if(n !== null){
+      if(n < 0) h += '<span class="badge-end red">📞 Geri dönüş ' + (-n) + ' gün gecikti</span> ';
+      else if(n === 0) h += '<span class="badge-end red">📞 Bugün geri dönüş yap</span> ';
+      else if(n <= 3) h += '<span class="badge-end">📞 ' + n + ' gün sonra geri dön</span> ';
+    }
+  }
+  if(r.bitis){
+    const n = daysUntil(r.bitis);
+    if(n !== null){
+      if(n < 0) h += '<span class="badge-end red">📄 Sözleşme bitti</span>';
+      else if(n <= 60) h += '<span class="badge-end ' + (n <= 15 ? 'red' : '') + '">📄 Sözleşme ' + n + ' gün sonra bitiyor</span>';
+    }
+  }
+  return h;
+}
+
+function renderChips(all){
+  const counts = {all:all.length, yaklasan:all.filter(r => badgesFor(r)).length};
+  STATUSES.forEach(s => counts[s.k] = all.filter(r => r.durum === s.k).length);
+  const chips = [{k:'all',t:'Tümü'},{k:'yaklasan',t:'⏰ Yaklaşan'}].concat(STATUSES.map(s => ({k:s.k,t:s.t})));
+  document.getElementById('histChips').innerHTML = chips.map(c =>
+    '<button class="chip ' + (histFilter === c.k ? 'on' : '') + '" data-f="' + c.k + '">' + c.t + ' (' + counts[c.k] + ')</button>'
+  ).join('');
+}
+
+function renderHist(){
+  const all = loadRecs();
+  document.getElementById('histCnt').textContent = all.length;
+  renderChips(all);
+
+  const q = (document.getElementById('histSearch').value || '').toLowerCase().trim();
+  const list = all.filter(r => {
+    if(histFilter === 'yaklasan' && !badgesFor(r)) return false;
+    if(histFilter !== 'all' && histFilter !== 'yaklasan' && r.durum !== histFilter) return false;
+    if(q && !(((r.firma||'') + ' ' + (r.not||'')).toLowerCase().includes(q))) return false;
+    return true;
+  });
+  list.sort((a,b) => (b.tarih||'').localeCompare(a.tarih||''));
+
+  const box = document.getElementById('histList');
+  if(!list.length){
+    box.innerHTML = '<div class="hist-empty">' + (all.length
+      ? 'Bu filtreye uyan kayıt yok.'
+      : 'Henüz kayıtlı teklif yok.<br>PDF\'i paylaştığında veya <b>"Teklifi Kaydet"</b>e bastığında teklifler burada listelenir.') + '</div>';
+    return;
+  }
+
+  box.innerHTML = list.map(r => {
+    const items = (Array.isArray(r.items) ? r.items : []).map(i => i.qty + '× ' + i.name).join(', ');
+    const opts = STATUSES.map(s => '<option value="' + s.k + '"' + (r.durum === s.k ? ' selected' : '') + '>' + s.t + '</option>').join('');
+    return '<div class="rec s-' + esc(r.durum) + '" data-id="' + esc(r.id) + '">' +
+      '<div class="rec-top"><input class="rec-firma" data-f="firma" value="' + esc(r.firma) + '">' +
+      '<button class="rec-del" data-act="del" aria-label="Sil">🗑</button></div>' +
+      '<div class="rec-meta">📅 Teklif tarihi: ' + fmtDT(r.tarih) + '</div>' +
+      '<div class="rec-price">İlk 12 ay: ' + fmt(r.ilk12 || 0) + ' TL · Son 12 ay: ' + fmt(r.son12 || 0) + ' TL <small>(aylık)</small></div>' +
+      '<div class="rec-items">' + (esc(items) || '—') + '</div>' +
+      '<div class="rec-row">' +
+        '<div style="min-width:100%"><label>DURUM</label><select data-f="durum">' + opts + '</select></div>' +
+        '<div><label>GERİ DÖNÜŞ TARİHİ</label><input type="date" data-f="donus" value="' + esc(r.donus || '') + '"></div>' +
+        '<div><label>SÖZLEŞME BİTİŞ</label><input type="date" data-f="bitis" value="' + esc(r.bitis || '') + '"></div>' +
+      '</div>' +
+      '<div class="rec-row"><div style="min-width:100%"><label>NOT</label>' +
+        '<textarea data-f="not" placeholder="Görüşme notu, ertelenme sebebi...">' + esc(r.not || '') + '</textarea></div></div>' +
+      badgesFor(r) +
+      '<div><button class="rec-load" data-act="edit">✏️ Teklifi Düzenle / Yeniden Aç</button></div>' +
+    '</div>';
+  }).join('');
+}
+
+function openHist(){
+  renderHist();
+  document.getElementById('histOverlay').classList.add('open');
+  document.body.style.overflow = 'hidden';
+  try{ history.pushState({hist:1}, ''); }catch(e){}
+}
+function closeHist(fromPop){
+  document.getElementById('histOverlay').classList.remove('open');
+  document.body.style.overflow = '';
+  if(!fromPop && history.state && history.state.hist){
+    try{ history.back(); }catch(e){}
+  }
+}
+// Android geri tuşu uygulamadan çıkmak yerine listeyi kapatsın
+window.addEventListener('popstate', function(){
+  if(document.getElementById('histOverlay').classList.contains('open')) closeHist(true);
+});
+
+// ---- düzenleme ----
+function updateEditUI(){
+  const bar = document.getElementById('editBar');
+  const btn = document.getElementById('saveBtn');
+  if(editingId){
+    const r = loadRecs().find(x => x.id === editingId);
+    bar.style.display = 'block';
+    bar.innerHTML = '✏️ Düzenleniyor: <b>' + esc(r ? r.firma : '') + '</b><a href="#" onclick="stopEdit();return false;">Düzenlemeyi bırak</a>';
+    btn.textContent = '💾 Değişiklikleri Kaydet';
+  } else {
+    bar.style.display = 'none';
+    btn.textContent = '✅ Teklifi Kaydet';
+  }
+}
+function stopEdit(){ editingId = null; updateEditUI(); }
+
+function loadForEdit(id){
+  const r = loadRecs().find(x => x.id === id);
+  if(!r) return;
+  PACKAGES.forEach(p => { document.getElementById(qtyId(p.name)).value = 0; });
+  (Array.isArray(r.items) ? r.items : []).forEach(i => {
+    const el = document.getElementById(qtyId(i.name));
+    if(el) el.value = i.qty;
+  });
+  if(r.disc1 != null) document.getElementById('disc1').value = r.disc1;
+  if(r.disc2 != null) document.getElementById('disc2').value = r.disc2;
+  document.querySelector('.company-name').textContent = (r.firma === '(Firma adı yok)') ? 'ŞİRKET ADI' : r.firma;
+  editingId = id;
+  updateEditUI();
+  recalc();
+  closeHist();
+  window.scrollTo({top:0});
+  toast('Teklif açıldı. Değiştirip "Değişiklikleri Kaydet"e basabilirsin');
+}
+
+// ---- liste olayları ----
+document.getElementById('histList').addEventListener('input', function(e){
+  const f = e.target.dataset.f;
+  if(f !== 'firma' && f !== 'not') return;
+  updateRec(e.target.closest('.rec').dataset.id, f, e.target.value);
+});
+document.getElementById('histList').addEventListener('change', function(e){
+  const f = e.target.dataset.f;
+  if(f !== 'durum' && f !== 'donus' && f !== 'bitis') return;
+  updateRec(e.target.closest('.rec').dataset.id, f, e.target.value);
+  renderHist();
+});
+document.getElementById('histList').addEventListener('click', function(e){
+  const btn = e.target.closest('[data-act]');
+  if(!btn) return;
+  const id = btn.closest('.rec').dataset.id;
+  if(btn.dataset.act === 'edit'){ loadForEdit(id); }
+  else if(btn.dataset.act === 'del'){
+    if(confirm('Bu teklif kaydı silinsin mi?')){
+      saveRecs(loadRecs().filter(r => r.id !== id));
+      if(editingId === id) stopEdit();
+      renderHist();
+    }
+  }
+});
+document.getElementById('histChips').addEventListener('click', function(e){
+  const b = e.target.closest('.chip');
+  if(!b) return;
+  histFilter = b.dataset.f;
+  renderHist();
+});
+document.getElementById('histSearch').addEventListener('input', renderHist);
+
+// ---- yedekle / geri yükle ----
+async function exportHist(){
+  const list = loadRecs();
+  if(!list.length){ toast('Yedeklenecek kayıt yok'); return; }
+  const name = 'teklif-gecmisi-' + new Date().toISOString().slice(0,10) + '.json';
+  const blob = new Blob([JSON.stringify(list, null, 2)], {type:'application/json'});
+  try{
+    const file = new File([blob], name, {type:'application/json'});
+    if(navigator.canShare && navigator.canShare({files:[file]})){
+      await navigator.share({files:[file], title:'Teklif Geçmişi Yedeği'});
+      return;
+    }
+  }catch(err){
+    if(err && err.name === 'AbortError') return;
+  }
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = name;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  toast('Yedek dosyası indirildi');
+}
+document.getElementById('histImport').addEventListener('change', function(){
+  const f = this.files[0];
+  if(!f) return;
+  const input = this;
+  const rd = new FileReader();
+  rd.onload = function(){
+    try{
+      const incoming = JSON.parse(rd.result);
+      if(!Array.isArray(incoming)) throw new Error('format');
+      const cur = loadRecs();
+      const ids = new Set(cur.map(r => r.id));
+      let n = 0;
+      incoming.forEach(r => {
+        if(r && r.id && typeof r.firma === 'string' && !ids.has(r.id)){ cur.push(r); n++; }
+      });
+      saveRecs(cur);
+      renderHist();
+      toast(n + ' kayıt eklendi');
+    }catch(err){
+      toast('Dosya okunamadı, geçerli bir yedek değil');
+    }
+    input.value = '';
+  };
+  rd.readAsText(f);
+});
+
 recalc();
+document.getElementById('histCnt').textContent = loadRecs().length;
+updateEditUI();
 
 if('serviceWorker' in navigator){
   window.addEventListener('load', function(){
