@@ -558,6 +558,37 @@
   }
   .chip.on{background:var(--teal);border-color:var(--teal);}
   .hist-body{padding:12px 12px 90px;max-width:720px;margin:0 auto;}
+  .hist-filters{
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:12px;
+    padding:10px 12px 8px;
+    margin-bottom:12px;
+  }
+  .f-row{display:flex;gap:8px;margin-bottom:8px;}
+  .f-row > div{flex:1;min-width:0;}
+  .hist-filters label{display:block;font-size:11px;font-weight:700;color:var(--muted);margin-bottom:3px;}
+  .hist-filters select{
+    width:100%;
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:8px 6px;
+    font-size:13.5px;
+    font-family:inherit;
+    background:#fff;
+    color:var(--ink);
+  }
+  .f-info{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:var(--muted);font-weight:600;padding-bottom:2px;}
+  .f-info a{color:var(--teal-dark);font-weight:700;display:none;}
+  .grp-title{
+    font-family:'Baloo 2',sans-serif;
+    font-size:13.5px;
+    font-weight:700;
+    color:var(--navy);
+    margin:16px 2px 8px;
+    padding-bottom:4px;
+    border-bottom:2px solid var(--line);
+  }
   .hist-empty{
     text-align:center;
     color:var(--muted);
@@ -793,7 +824,7 @@
     <p class="pdf-hint">PDF'i paylaşınca teklif otomatik kaydedilir. Başka yolla gönderdiysen buradan elle kaydedebilirsin.</p>
     <button class="hist-btn" onclick="openHist()">📋 Teklif Geçmişi<span class="cnt" id="histCnt">0</span></button>
     <button class="reset-btn" onclick="resetAll()">Tüm Seçimleri Sıfırla</button>
-    <p class="pdf-hint" style="margin-top:14px;">Sürüm 4 · arama/WhatsApp, 3 durum, geçerlilik tarihi</p>
+    <p class="pdf-hint" style="margin-top:14px;">Sürüm 5 · tarih filtresi, sıralama, arama/WhatsApp</p>
   </div>
 
   <!-- RIGHT TEKLIF FORM -->
@@ -904,7 +935,32 @@
     <input type="search" id="histSearch" placeholder="Firma veya not ara...">
     <div class="hist-chips" id="histChips"></div>
   </div>
-  <div class="hist-body" id="histList"></div>
+  <div class="hist-body">
+    <div class="hist-filters">
+      <div class="f-row">
+        <div style="min-width:100%"><label>SIRALAMA</label>
+          <select id="fSort">
+            <option value="bitis">Sözleşme bitişi (yaklaşan önce)</option>
+            <option value="yeni">Teklif tarihi (yeni → eski)</option>
+            <option value="eski">Teklif tarihi (eski → yeni)</option>
+            <option value="firma">Firma adı (A → Z)</option>
+          </select>
+        </div>
+      </div>
+      <div class="f-row">
+        <div><label>TARİH TÜRÜ</label>
+          <select id="fDate">
+            <option value="tarih">Teklif tarihi</option>
+            <option value="bitis">Sözleşme bitişi</option>
+          </select>
+        </div>
+        <div><label>AY</label><select id="fMonth"></select></div>
+        <div><label>YIL</label><select id="fYear"></select></div>
+      </div>
+      <div class="f-info"><span id="fInfo"></span><a href="#" id="fClear">Filtreyi temizle</a></div>
+    </div>
+    <div id="histList"></div>
+  </div>
   <div class="hist-foot">
     <button onclick="exportHist()">💾 Yedekle</button>
     <label>📥 Yedekten Yükle<input type="file" id="histImport" accept=".json,application/json" hidden></label>
@@ -1315,6 +1371,85 @@ function badgesFor(r){
   return h;
 }
 
+// ---- tarih filtresi + sıralama yardımcıları ----
+const MONTHS = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+
+function fmtYmd(ymd){
+  if(!ymd) return '';
+  const p = String(ymd).split('-').map(Number);
+  if(p.length !== 3 || p.some(isNaN)) return '';
+  return String(p[2]).padStart(2,'0') + '.' + String(p[1]).padStart(2,'0') + '.' + p[0];
+}
+// kayıt için {y, m} döndürür (m: 0-11); tarih yoksa null
+function recDate(r, kind){
+  if(kind === 'bitis'){
+    if(!r.bitis) return null;
+    const p = String(r.bitis).split('-').map(Number);
+    if(p.length !== 3 || p.some(isNaN)) return null;
+    return {y:p[0], m:p[1]-1};
+  }
+  const d = new Date(r.tarih);
+  if(isNaN(d)) return null;
+  return {y:d.getFullYear(), m:d.getMonth()};
+}
+function grpOf(r){
+  const n = daysUntil(r.bitis);
+  if(n === null) return 'Sözleşme bitiş tarihi girilmemiş';
+  return n >= 0 ? 'Sözleşmesi yaklaşanlar (en yakın önce)' : 'Sözleşmesi bitenler (en yeni önce)';
+}
+function sortRecs(list, mode){
+  const tms = r => new Date(r.tarih).getTime() || 0;
+  if(mode === 'bitis'){
+    const up = [], past = [], none = [];
+    list.forEach(r => {
+      const n = daysUntil(r.bitis);
+      if(n === null) none.push(r); else if(n >= 0) up.push(r); else past.push(r);
+    });
+    up.sort((a,b) => daysUntil(a.bitis) - daysUntil(b.bitis));
+    past.sort((a,b) => daysUntil(b.bitis) - daysUntil(a.bitis));
+    none.sort((a,b) => tms(b) - tms(a));
+    const out = up.concat(past, none);
+    list.length = 0; out.forEach(x => list.push(x));
+  } else if(mode === 'eski'){
+    list.sort((a,b) => tms(a) - tms(b));
+  } else if(mode === 'firma'){
+    list.sort((a,b) => String(a.firma||'').localeCompare(String(b.firma||''), 'tr'));
+  } else {
+    list.sort((a,b) => tms(b) - tms(a));
+  }
+}
+function syncYearOptions(all, kind){
+  const sel = document.getElementById('fYear');
+  const cur = sel.value;
+  const years = new Set();
+  all.forEach(r => { const d = recDate(r, kind); if(d) years.add(d.y); });
+  const arr = Array.from(years).sort((a,b) => b - a);
+  sel.innerHTML = '<option value="">Tüm yıllar</option>' + arr.map(y => '<option value="' + y + '">' + y + '</option>').join('');
+  sel.value = arr.indexOf(Number(cur)) >= 0 ? cur : '';
+}
+(function initFilters(){
+  const m = document.getElementById('fMonth');
+  m.innerHTML = '<option value="">Tüm aylar</option>' + MONTHS.map((n,i) => '<option value="' + i + '">' + n + '</option>').join('');
+  try{
+    const s = localStorage.getItem('tt_sort_v1');
+    if(s) document.getElementById('fSort').value = s;
+  }catch(e){}
+  ['fSort','fDate','fMonth','fYear'].forEach(id => {
+    document.getElementById(id).addEventListener('change', function(){
+      if(id === 'fSort'){ try{ localStorage.setItem('tt_sort_v1', this.value); }catch(e){} }
+      renderHist();
+    });
+  });
+  document.getElementById('fClear').addEventListener('click', function(e){
+    e.preventDefault();
+    document.getElementById('fMonth').value = '';
+    document.getElementById('fYear').value = '';
+    document.getElementById('histSearch').value = '';
+    histFilter = 'all';
+    renderHist();
+  });
+})();
+
 function renderChips(all){
   const counts = {all:all.length, yaklasan:all.filter(r => badgesFor(r)).length};
   STATUSES.forEach(s => counts[s.k] = all.filter(r => r.durum === s.k).length);
@@ -1330,13 +1465,34 @@ function renderHist(){
   renderChips(all);
 
   const q = (document.getElementById('histSearch').value || '').toLowerCase().trim();
+  const kind = document.getElementById('fDate').value;
+  syncYearOptions(all, kind);
+  const fm = document.getElementById('fMonth').value;
+  const fy = document.getElementById('fYear').value;
+  const sortMode = document.getElementById('fSort').value;
+
   const list = all.filter(r => {
     if(histFilter === 'yaklasan' && !badgesFor(r)) return false;
     if(histFilter !== 'all' && histFilter !== 'yaklasan' && r.durum !== histFilter) return false;
     if(q && !(((r.firma||'') + ' ' + (r.not||'') + ' ' + (r.yetkili||'') + ' ' + (r.telefon||'')).toLowerCase().includes(q))) return false;
+    if(fm !== '' || fy !== ''){
+      const d = recDate(r, kind);
+      if(!d) return false;
+      if(fm !== '' && d.m !== Number(fm)) return false;
+      if(fy !== '' && d.y !== Number(fy)) return false;
+    }
     return true;
   });
-  list.sort((a,b) => (b.tarih||'').localeCompare(a.tarih||''));
+  sortRecs(list, sortMode);
+
+  // sonuç sayısı + filtre temizleme
+  const filtered = (fm !== '' || fy !== '' || q !== '' || histFilter !== 'all');
+  const parts = [];
+  if(fm !== '') parts.push(MONTHS[Number(fm)]);
+  if(fy !== '') parts.push(fy);
+  const dateTxt = parts.length ? ' · ' + (kind === 'bitis' ? 'Sözleşme bitişi: ' : 'Teklif tarihi: ') + parts.join(' ') : '';
+  document.getElementById('fInfo').textContent = list.length + ' kayıt' + dateTxt;
+  document.getElementById('fClear').style.display = filtered ? 'inline' : 'none';
 
   const box = document.getElementById('histList');
   if(!list.length){
@@ -1346,7 +1502,19 @@ function renderHist(){
     return;
   }
 
+  let lastGrp = null;
   box.innerHTML = list.map(r => {
+    let head = '';
+    if(sortMode === 'bitis'){
+      const g = grpOf(r);
+      if(g !== lastGrp){ head = '<div class="grp-title">' + g + '</div>'; lastGrp = g; }
+    }
+    return head + cardHtml(r);
+  }).join('');
+}
+
+function cardHtml(r){
+  {
     const items = (Array.isArray(r.items) ? r.items : []).map(i => i.qty + '× ' + i.name).join(', ');
     const seg = STATUSES.map(s => '<button class="v-' + s.k + (r.durum === s.k ? ' on' : '') + '" data-act="status" data-v="' + s.k + '">' + s.t + '</button>').join('');
     const disc = (r.disc1 != null && r.disc2 != null)
@@ -1355,6 +1523,7 @@ function renderHist(){
       '<div class="rec-top"><input class="rec-firma" data-f="firma" value="' + esc(r.firma) + '">' +
       '<button class="rec-del" data-act="del" aria-label="Sil">🗑</button></div>' +
       '<div class="rec-meta">📅 Teklif tarihi: ' + fmtDT(r.tarih) + (r.gecerlilik ? ' · ' + esc(r.gecerlilik) + ' gün geçerli' : '') + '</div>' +
+      (fmtYmd(r.bitis) ? '<div class="rec-meta" style="font-weight:700;color:var(--navy);">📄 Sözleşme bitiş: ' + fmtYmd(r.bitis) + '</div>' : '') +
       '<div class="rec-price">İlk 12 ay: ' + fmt(r.ilk12 || 0) + ' TL · Son 12 ay: ' + fmt(r.son12 || 0) + ' TL <small>(aylık)</small></div>' +
       disc +
       '<div class="rec-items">' + (esc(items) || '—') + '</div>' +
@@ -1376,7 +1545,7 @@ function renderHist(){
       badgesFor(r) +
       '<div><button class="rec-load" data-act="edit">✏️ Teklifi Düzenle / Yeniden Aç</button></div>' +
     '</div>';
-  }).join('');
+  }
 }
 
 function openHist(){
@@ -1444,6 +1613,7 @@ document.getElementById('histList').addEventListener('change', function(e){
   if(f !== 'donus' && f !== 'bitis') return;
   updateRec(e.target.closest('.rec').dataset.id, f, e.target.value);
   renderHist();
+  toast(f === 'bitis' ? 'Sözleşme bitiş tarihi kaydedildi ✓' : 'Geri dönüş tarihi kaydedildi ✓');
 });
 document.getElementById('histList').addEventListener('click', function(e){
   const btn = e.target.closest('[data-act]');
