@@ -580,6 +580,109 @@
   }
   .f-info{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:var(--muted);font-weight:600;padding-bottom:2px;}
   .f-info a{color:var(--teal-dark);font-weight:700;display:none;}
+  /* ---------- BELGELER ---------- */
+  .btn-docs{
+    width:100%;
+    margin-top:10px;
+    background:#fff;
+    border:1.5px solid var(--navy);
+    color:var(--navy);
+    border-radius:10px;
+    padding:10px;
+    font-size:14px;
+    font-weight:700;
+    cursor:pointer;
+    font-family:inherit;
+  }
+  .btn-docs.has{background:var(--navy);color:#fff;}
+  .docs-panel{
+    display:none;
+    margin-top:8px;
+    background:#f7fafd;
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:10px;
+  }
+  .docs-panel.open{display:block;}
+  .doc-add{display:flex;gap:6px;flex-wrap:wrap;}
+  .doc-add select{flex:1 1 100%;}
+  .doc-add button{
+    flex:1;
+    border:none;
+    border-radius:8px;
+    padding:10px 6px;
+    font-size:13px;
+    font-weight:700;
+    color:#fff;
+    background:var(--teal-dark);
+    cursor:pointer;
+    font-family:inherit;
+  }
+  .doc-add button.alt{background:var(--navy);}
+  .doc-list{margin-top:10px;}
+  .doc-item{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    background:#fff;
+    border:1px solid var(--line);
+    border-radius:8px;
+    padding:8px;
+    margin-bottom:6px;
+  }
+  .doc-ico{font-size:22px;flex:0 0 auto;}
+  .doc-meta{flex:1;min-width:0;line-height:1.35;}
+  .doc-meta b{display:block;font-size:13.5px;color:var(--navy);}
+  .doc-meta small{display:block;font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .doc-item button{
+    border:1px solid var(--line);
+    background:#fff;
+    border-radius:8px;
+    padding:8px 9px;
+    font-size:13px;
+    font-weight:700;
+    cursor:pointer;
+    font-family:inherit;
+    color:var(--navy);
+  }
+  .doc-item button.open{background:var(--teal-dark);border-color:var(--teal-dark);color:#fff;}
+  .doc-item button.del{color:var(--accent-red);}
+  .doc-empty{font-size:12.5px;color:var(--muted);text-align:center;padding:8px 4px;}
+  .doc-note{font-size:11px;color:var(--muted);margin-top:6px;line-height:1.45;}
+  .viewer{
+    display:none;
+    position:fixed;
+    inset:0;
+    z-index:1500;
+    background:#0b0f18;
+    flex-direction:column;
+  }
+  .viewer.open{display:flex;}
+  .viewer-bar{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:10px 12px;
+    background:var(--navy);
+    color:#fff;
+  }
+  .viewer-bar span{flex:1;min-width:0;font-size:14px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .viewer-bar button{
+    background:rgba(255,255,255,.16);
+    border:none;
+    color:#fff;
+    border-radius:8px;
+    padding:8px 12px;
+    font-size:14px;
+    font-weight:700;
+    cursor:pointer;
+    font-family:inherit;
+  }
+  .viewer-body{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;text-align:center;}
+  .viewer-body img{max-width:100%;max-height:100%;margin:0 auto;display:block;object-fit:contain;cursor:zoom-in;}
+  .viewer-body img.zoom{max-width:none;max-height:none;width:230%;cursor:zoom-out;}
+  .viewer-hint{text-align:center;color:#8a96ab;font-size:11.5px;padding:6px;}
+  @media print{ .viewer{display:none !important;} }
   .grp-title{
     font-family:'Baloo 2',sans-serif;
     font-size:13.5px;
@@ -824,7 +927,7 @@
     <p class="pdf-hint">PDF'i paylaşınca teklif otomatik kaydedilir. Başka yolla gönderdiysen buradan elle kaydedebilirsin.</p>
     <button class="hist-btn" onclick="openHist()">📋 Teklif Geçmişi<span class="cnt" id="histCnt">0</span></button>
     <button class="reset-btn" onclick="resetAll()">Tüm Seçimleri Sıfırla</button>
-    <p class="pdf-hint" style="margin-top:14px;">Sürüm 5 · tarih filtresi, sıralama, arama/WhatsApp</p>
+    <p class="pdf-hint" style="margin-top:14px;">Sürüm 6 · belgeler, tarih filtresi, sıralama</p>
   </div>
 
   <!-- RIGHT TEKLIF FORM -->
@@ -963,9 +1066,22 @@
   </div>
   <div class="hist-foot">
     <button onclick="exportHist()">💾 Yedekle</button>
-    <label>📥 Yedekten Yükle<input type="file" id="histImport" accept=".json,application/json" hidden></label>
+    <label>📥 Yedekten Yükle<input type="file" id="histImport" accept=".zip,.json,application/zip,application/json" hidden></label>
   </div>
 </div>
+
+<!-- BELGE GÖRÜNTÜLEYİCİ -->
+<div class="viewer" id="viewer">
+  <div class="viewer-bar">
+    <span id="viewerTitle"></span>
+    <button id="viewerShare">↗ Paylaş</button>
+    <button id="viewerClose" aria-label="Kapat">✕</button>
+  </div>
+  <div class="viewer-body" id="viewerBody"><img id="viewerImg" alt=""></div>
+  <div class="viewer-hint">Yakınlaştırmak için belgeye dokun</div>
+</div>
+<input type="file" id="docFile" accept="image/*,application/pdf,.pdf" multiple hidden>
+<input type="file" id="docCam" accept="image/*" capture="environment" hidden>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -1225,6 +1341,11 @@ function waNumber(p){
   return d;
 }
 let editingId = null;
+let docCounts = {};          // firma id -> belge sayısı
+const openDocs = new Set();  // açık belge panelleri
+let lastCat = 'İmza Sirküleri';
+let pendingDoc = null;
+let skipPop = 0;
 let histFilter = 'all';
 let toastTimer = null;
 
@@ -1511,6 +1632,7 @@ function renderHist(){
     }
     return head + cardHtml(r);
   }).join('');
+  openDocs.forEach(rid => renderDocPanel(rid));
 }
 
 function cardHtml(r){
@@ -1536,6 +1658,8 @@ function cardHtml(r){
         '<button class="btn-call" data-act="call">📞 Ara</button>' +
         '<button class="btn-wa" data-act="wa">💬 WhatsApp</button>' +
       '</div>' +
+      '<button class="btn-docs' + ((docCounts[r.id] || 0) > 0 ? ' has' : '') + '" data-act="docs">📎 Belgeler (' + (docCounts[r.id] || 0) + ')</button>' +
+      '<div class="docs-panel" data-rid="' + esc(r.id) + '"></div>' +
       '<div class="rec-row">' +
         '<div><label>GERİ DÖNÜŞ TARİHİ</label><input type="date" data-f="donus" value="' + esc(r.donus || '') + '"></div>' +
         '<div><label>SÖZLEŞME BİTİŞ</label><input type="date" data-f="bitis" value="' + esc(r.bitis || '') + '"></div>' +
@@ -1550,6 +1674,7 @@ function cardHtml(r){
 
 function openHist(){
   renderHist();
+  loadDocCounts().then(renderHist);
   document.getElementById('histOverlay').classList.add('open');
   document.body.style.overflow = 'hidden';
   try{ history.pushState({hist:1}, ''); }catch(e){}
@@ -1563,6 +1688,8 @@ function closeHist(fromPop){
 }
 // Android geri tuşu uygulamadan çıkmak yerine listeyi kapatsın
 window.addEventListener('popstate', function(){
+  if(skipPop > 0){ skipPop--; return; }
+  if(document.getElementById('viewer').classList.contains('open')){ closeViewer(true); return; }
   if(document.getElementById('histOverlay').classList.contains('open')) closeHist(true);
 });
 
@@ -1638,12 +1765,40 @@ document.getElementById('histList').addEventListener('click', function(e){
     window.open('https://wa.me/' + num, '_blank');
   }
   else if(btn.dataset.act === 'del'){
-    if(confirm('Bu teklif kaydı silinsin mi?')){
+    const nd = docCounts[id] || 0;
+    if(confirm(nd ? ('Bu teklif kaydı ve ' + nd + ' belgesi silinsin mi?') : 'Bu teklif kaydı silinsin mi?')){
       saveRecs(loadRecs().filter(r => r.id !== id));
+      openDocs.delete(id);
+      delDocsOf(id).catch(() => {}).then(loadDocCounts).then(renderHist);
       if(editingId === id) stopEdit();
       renderHist();
     }
   }
+  else if(btn.dataset.act === 'docs'){
+    if(openDocs.has(id)) openDocs.delete(id); else openDocs.add(id);
+    renderDocPanel(id);
+  }
+  else if(btn.dataset.act === 'doc-cam' || btn.dataset.act === 'doc-file'){
+    const sel = btn.closest('.docs-panel').querySelector('.doc-cat');
+    if(sel) lastCat = sel.value;
+    pendingDoc = {recId:id};
+    document.getElementById(btn.dataset.act === 'doc-cam' ? 'docCam' : 'docFile').click();
+  }
+  else if(btn.dataset.act === 'doc-open'){
+    openDoc(btn.closest('.doc-item').dataset.did);
+  }
+  else if(btn.dataset.act === 'doc-share'){
+    getDoc(btn.closest('.doc-item').dataset.did).then(d => { if(d) shareDoc(d); });
+  }
+  else if(btn.dataset.act === 'doc-del'){
+    const did = btn.closest('.doc-item').dataset.did;
+    if(confirm('Bu belge silinsin mi?')){
+      delDoc(did).then(loadDocCounts).then(() => renderDocPanel(id)).catch(() => toast('Belge silinemedi'));
+    }
+  }
+});
+document.getElementById('histList').addEventListener('change', function(e){
+  if(e.target.classList && e.target.classList.contains('doc-cat')) lastCat = e.target.value;
 });
 document.getElementById('histChips').addEventListener('click', function(e){
   const b = e.target.closest('.chip');
@@ -1657,12 +1812,47 @@ document.getElementById('histSearch').addEventListener('input', renderHist);
 async function exportHist(){
   const list = loadRecs();
   if(!list.length){ toast('Yedeklenecek kayıt yok'); return; }
-  const name = 'teklif-gecmisi-' + new Date().toISOString().slice(0,10) + '.json';
-  const blob = new Blob([JSON.stringify(list, null, 2)], {type:'application/json'});
+  const day = new Date().toISOString().slice(0,10);
+
+  // kayıtlara bağlı belgeleri topla
+  let docs = [];
   try{
-    const file = new File([blob], name, {type:'application/json'});
+    const ids = new Set(list.map(r => r.id));
+    docs = (await allDocs()).filter(d => ids.has(d.recId));
+  }catch(e){ docs = []; }
+
+  let blob, name, mime;
+  if(!docs.length){
+    // belge yoksa eski, küçük .json yedeği
+    name = 'teklif-gecmisi-' + day + '.json';
+    mime = 'application/json';
+    blob = new Blob([JSON.stringify(list, null, 2)], {type:mime});
+  } else {
+    toast('Yedek hazırlanıyor (' + docs.length + ' belge)...');
+    const meta = docs.map(d => ({
+      id:d.id, recId:d.recId, kategori:d.kategori, name:d.name, type:d.type,
+      size:d.size, added:d.added, dosya:d.id + '_' + safeName(d.name)
+    }));
+    const entries = [{
+      name:'kayitlar.json',
+      blob:new Blob([JSON.stringify({surum:2, kayitlar:list, belgeler:meta}, null, 2)], {type:'application/json'})
+    }];
+    docs.forEach((d, i) => entries.push({name:'belgeler/' + meta[i].dosya, blob:d.blob}));
+    try{
+      blob = await buildZip(entries);
+    }catch(err){
+      console.error(err);
+      toast('Yedek hazırlanamadı (yer yetersiz olabilir)');
+      return;
+    }
+    name = 'teklif-yedek-' + day + '.zip';
+    mime = 'application/zip';
+  }
+
+  try{
+    const file = new File([blob], name, {type:mime});
     if(navigator.canShare && navigator.canShare({files:[file]})){
-      await navigator.share({files:[file], title:'Teklif Geçmişi Yedeği'});
+      await navigator.share({files:[file], title:'Teklif Yedeği'});
       return;
     }
   }catch(err){
@@ -1672,38 +1862,403 @@ async function exportHist(){
   const a = document.createElement('a');
   a.href = url; a.download = name;
   document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
-  toast('Yedek dosyası indirildi');
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+  toast('Yedek indirildi (' + fmtSize(blob.size) + ')');
 }
-document.getElementById('histImport').addEventListener('change', function(){
+
+document.getElementById('histImport').addEventListener('change', async function(){
   const f = this.files[0];
   if(!f) return;
   const input = this;
-  const rd = new FileReader();
-  rd.onload = function(){
-    try{
-      const incoming = JSON.parse(rd.result);
-      if(!Array.isArray(incoming)) throw new Error('format');
-      const cur = loadRecs();
-      const ids = new Set(cur.map(r => r.id));
-      let n = 0;
-      incoming.forEach(r => {
-        if(r && r.id && typeof r.firma === 'string' && !ids.has(r.id)){ cur.push(r); n++; }
-      });
-      saveRecs(cur);
-      renderHist();
-      toast(n + ' kayıt eklendi');
-    }catch(err){
-      toast('Dosya okunamadı, geçerli bir yedek değil');
+  try{
+    let incoming, docMeta = [], zip = null;
+    const head = new Uint8Array(await f.slice(0, 2).arrayBuffer());
+    if(head[0] === 0x50 && head[1] === 0x4B){           // "PK" = zip
+      zip = await readZip(f);
+      const jb = await zip.get('kayitlar.json');
+      if(!jb) throw new Error('kayitlar.json yok');
+      const data = JSON.parse(await jb.text());
+      incoming = data.kayitlar;
+      docMeta = Array.isArray(data.belgeler) ? data.belgeler : [];
+    } else {
+      const data = JSON.parse(await f.text());
+      incoming = Array.isArray(data) ? data : data.kayitlar;
     }
-    input.value = '';
-  };
-  rd.readAsText(f);
+    if(!Array.isArray(incoming)) throw new Error('format');
+
+    const cur = loadRecs();
+    const ids = new Set(cur.map(r => r.id));
+    let n = 0;
+    incoming.forEach(r => {
+      if(r && r.id && typeof r.firma === 'string' && !ids.has(r.id)){ cur.push(r); ids.add(r.id); n++; }
+    });
+    saveRecs(cur);
+
+    let nd = 0;
+    if(zip && docMeta.length){
+      const have = new Set();
+      try{ (await allDocs()).forEach(d => have.add(d.id)); }catch(e){}
+      for(const m of docMeta){
+        if(!m || !m.id || !ids.has(m.recId) || have.has(m.id)) continue;
+        const b = await zip.get('belgeler/' + m.dosya, m.type);
+        if(!b) continue;
+        await putDoc({id:m.id, recId:m.recId, kategori:m.kategori, name:m.name, type:m.type, size:b.size, added:m.added, blob:b});
+        nd++;
+      }
+    }
+    await loadDocCounts();
+    renderHist();
+    toast(n + ' kayıt' + (nd ? ', ' + nd + ' belge' : '') + ' eklendi');
+  }catch(err){
+    console.error(err);
+    toast('Dosya okunamadı, geçerli bir yedek değil');
+  }
+  input.value = '';
 });
+
+// =====================================================================
+//  BELGELER — imza sirküleri, vergi levhası, kimlik vb. (IndexedDB)
+// =====================================================================
+const DOC_CATS = ['İmza Sirküleri','Vergi Levhası','Kimlik','Sözleşme','Diğer'];
+
+function fmtSize(n){
+  n = Number(n) || 0;
+  if(n < 1024) return n + ' B';
+  if(n < 1048576) return Math.round(n / 1024) + ' KB';
+  return (n / 1048576).toFixed(1).replace('.', ',') + ' MB';
+}
+function safeName(n){ return String(n || 'belge').replace(/[^A-Za-z0-9._-]+/g, '_').slice(-60); }
+function recEl(id){
+  const els = document.querySelectorAll('#histList .rec');
+  for(let i = 0; i < els.length; i++){ if(els[i].dataset.id === id) return els[i]; }
+  return null;
+}
+function isViewableImg(d){
+  return /^image\//.test(d.type || '') && !/heic|heif/i.test(d.type || '');
+}
+
+let docDbPromise = null;
+function docDb(){
+  if(docDbPromise) return docDbPromise;
+  docDbPromise = new Promise((resolve, reject) => {
+    if(!window.indexedDB){ reject(new Error('IndexedDB yok')); return; }
+    const req = indexedDB.open('tt_belgeler_v1', 1);
+    req.onupgradeneeded = () => {
+      const st = req.result.createObjectStore('docs', {keyPath:'id'});
+      st.createIndex('recId', 'recId', {unique:false});
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+  docDbPromise.catch(() => { docDbPromise = null; });
+  return docDbPromise;
+}
+function idbReq(r){ return new Promise((res, rej) => { r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error); }); }
+function txDone(tx){ return new Promise((res, rej) => { tx.oncomplete = () => res(); tx.onerror = tx.onabort = () => rej(tx.error); }); }
+
+async function docsOf(recId){
+  const db = await docDb();
+  const arr = await idbReq(db.transaction('docs','readonly').objectStore('docs').index('recId').getAll(recId));
+  return arr.sort((a,b) => String(a.added || '').localeCompare(String(b.added || '')));
+}
+async function allDocs(){
+  const db = await docDb();
+  return idbReq(db.transaction('docs','readonly').objectStore('docs').getAll());
+}
+async function getDoc(id){
+  const db = await docDb();
+  return idbReq(db.transaction('docs','readonly').objectStore('docs').get(id));
+}
+async function putDoc(d){
+  const db = await docDb();
+  const tx = db.transaction('docs','readwrite');
+  tx.objectStore('docs').put(d);
+  return txDone(tx);
+}
+async function delDoc(id){
+  const db = await docDb();
+  const tx = db.transaction('docs','readwrite');
+  tx.objectStore('docs').delete(id);
+  return txDone(tx);
+}
+async function delDocsOf(recId){
+  const db = await docDb();
+  const tx = db.transaction('docs','readwrite');
+  const st = tx.objectStore('docs');
+  const rq = st.index('recId').getAllKeys(recId);
+  rq.onsuccess = () => { rq.result.forEach(k => st.delete(k)); };
+  return txDone(tx);
+}
+async function loadDocCounts(){
+  try{
+    const db = await docDb();
+    const counts = {};
+    await new Promise((res, rej) => {
+      const req = db.transaction('docs','readonly').objectStore('docs').index('recId').openKeyCursor();
+      req.onsuccess = () => {
+        const c = req.result;
+        if(c){ counts[c.key] = (counts[c.key] || 0) + 1; c.continue(); } else res();
+      };
+      req.onerror = () => rej(req.error);
+    });
+    docCounts = counts;
+  }catch(e){ docCounts = {}; }
+}
+
+// Fotoğrafları okunur kalacak şekilde küçült (uzun kenar 1800 px, JPEG %80). PDF'ler olduğu gibi saklanır.
+async function prepareFile(file){
+  const isImg = /^image\//.test(file.type || '') || /\.(jpe?g|png|webp|gif|bmp)$/i.test(file.name || '');
+  if(!isImg) return {blob:file, type:file.type || 'application/pdf', name:file.name || 'belge.pdf'};
+  try{
+    const bmp = await createImageBitmap(file);
+    const sc = Math.min(1, 1800 / Math.max(bmp.width, bmp.height));
+    const c = document.createElement('canvas');
+    c.width = Math.max(1, Math.round(bmp.width * sc));
+    c.height = Math.max(1, Math.round(bmp.height * sc));
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, c.width, c.height);
+    ctx.drawImage(bmp, 0, 0, c.width, c.height);
+    if(bmp.close) bmp.close();
+    const out = await new Promise(res => c.toBlob(res, 'image/jpeg', 0.8));
+    if(out && (out.size < file.size || file.type !== 'image/jpeg')){
+      return {blob:out, type:'image/jpeg', name:(file.name || 'foto').replace(/\.[^.]+$/, '') + '.jpg'};
+    }
+  }catch(e){}
+  return {blob:file, type:file.type || 'image/jpeg', name:file.name || 'foto.jpg'};
+}
+
+async function addDocs(recId, cat, files){
+  if(!files.length) return;
+  toast('Belgeler kaydediliyor...');
+  try{ if(navigator.storage && navigator.storage.persist) navigator.storage.persist(); }catch(e){}
+  let ok = 0, fail = 0, total = 0;
+  for(const f of files){
+    try{
+      const p = await prepareFile(f);
+      await putDoc({
+        id:newId(), recId:recId, kategori:cat, name:p.name, type:p.type,
+        size:p.blob.size, added:new Date().toISOString(), blob:p.blob
+      });
+      ok++; total += p.blob.size;
+    }catch(e){ fail++; console.error(e); }
+  }
+  await loadDocCounts();
+  openDocs.add(recId);
+  renderDocPanel(recId);
+  toast(fail
+    ? (ok + ' belge kaydedildi, ' + fail + ' belge kaydedilemedi (depolama dolu veya kapalı olabilir)')
+    : (ok + ' belge kaydedildi (' + fmtSize(total) + ')'));
+}
+
+['docFile','docCam'].forEach(id => {
+  document.getElementById(id).addEventListener('change', async function(){
+    const files = Array.from(this.files || []);
+    const p = pendingDoc;
+    this.value = '';
+    if(!p || !files.length) return;
+    await addDocs(p.recId, lastCat, files);
+  });
+});
+
+async function renderDocPanel(recId){
+  const el = recEl(recId);
+  if(!el) return;
+  const panel = el.querySelector('.docs-panel');
+  const btn = el.querySelector('.btn-docs');
+  const n = docCounts[recId] || 0;
+  btn.textContent = '📎 Belgeler (' + n + ')';
+  btn.classList.toggle('has', n > 0);
+  if(!openDocs.has(recId)){ panel.classList.remove('open'); return; }
+  panel.classList.add('open');
+
+  let docs = [], failed = false;
+  try{ docs = await docsOf(recId); }catch(e){ failed = true; }
+
+  const items = docs.map(d =>
+    '<div class="doc-item" data-did="' + esc(d.id) + '">' +
+      '<span class="doc-ico">' + (isViewableImg(d) ? '🖼' : '📄') + '</span>' +
+      '<div class="doc-meta"><b>' + esc(d.kategori || 'Belge') + '</b>' +
+        '<small>' + esc(d.name) + ' · ' + fmtSize(d.size) + ' · ' + esc(new Date(d.added).toLocaleDateString('tr-TR')) + '</small></div>' +
+      '<button class="open" data-act="doc-open">Aç</button>' +
+      '<button data-act="doc-share" aria-label="Paylaş">↗</button>' +
+      '<button class="del" data-act="doc-del" aria-label="Sil">🗑</button>' +
+    '</div>').join('');
+
+  panel.innerHTML =
+    '<div class="doc-add">' +
+      '<select class="doc-cat">' + DOC_CATS.map(c => '<option>' + c + '</option>').join('') + '</select>' +
+      '<button data-act="doc-cam">📷 Fotoğraf Çek</button>' +
+      '<button class="alt" data-act="doc-file">📁 Dosya Seç</button>' +
+    '</div>' +
+    '<div class="doc-list">' + (failed
+      ? '<div class="doc-empty">Belge depolama bu tarayıcıda kullanılamıyor.</div>'
+      : (items || '<div class="doc-empty">Henüz belge yok. Önce türünü seç, sonra fotoğraf çek veya dosya seç.</div>')) + '</div>' +
+    '<div class="doc-note">Belgeler yalnızca bu telefonda saklanır. 💾 Yedekle ile zip dosyasına eklenir. Kimlik gibi belgeler içerdiği için yedeği sadece kendine gönder.</div>';
+  const sel = panel.querySelector('.doc-cat');
+  if(sel) sel.value = lastCat;
+}
+
+// ---- görüntüleme / paylaşma ----
+let viewerUrl = null, viewerDoc = null;
+async function openDoc(did){
+  let d = null;
+  try{ d = await getDoc(did); }catch(e){}
+  if(!d){ toast('Belge açılamadı'); return; }
+  if(isViewableImg(d)){
+    if(viewerUrl) URL.revokeObjectURL(viewerUrl);
+    viewerUrl = URL.createObjectURL(d.blob);
+    viewerDoc = d;
+    const img = document.getElementById('viewerImg');
+    img.classList.remove('zoom');
+    img.src = viewerUrl;
+    document.getElementById('viewerTitle').textContent = d.kategori || 'Belge';
+    document.getElementById('viewer').classList.add('open');
+    try{ history.pushState({v:1}, ''); }catch(e){}
+  } else {
+    // PDF ve diğer dosyalar: tarayıcının görüntüleyicisinde aç; açılmazsa indir
+    const url = URL.createObjectURL(d.blob);
+    const w = window.open(url, '_blank');
+    if(!w){
+      const a = document.createElement('a');
+      a.href = url; a.download = d.name || 'belge';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    }
+    setTimeout(() => URL.revokeObjectURL(url), 120000);
+  }
+}
+function closeViewer(fromPop){
+  document.getElementById('viewer').classList.remove('open');
+  document.getElementById('viewerImg').removeAttribute('src');
+  if(viewerUrl){ URL.revokeObjectURL(viewerUrl); viewerUrl = null; }
+  viewerDoc = null;
+  if(!fromPop && history.state && history.state.v){
+    skipPop++;
+    try{ history.back(); }catch(e){ skipPop = 0; }
+  }
+}
+async function shareDoc(d){
+  let nm = d.name || 'belge';
+  if(!/\.[A-Za-z0-9]{2,5}$/.test(nm)) nm += (d.type === 'application/pdf' ? '.pdf' : (/^image\//.test(d.type || '') ? '.jpg' : ''));
+  const file = new File([d.blob], nm, {type:d.type || 'application/octet-stream'});
+  try{
+    if(navigator.canShare && navigator.canShare({files:[file]})){
+      await navigator.share({files:[file], title:d.kategori || 'Belge'});
+      return;
+    }
+  }catch(err){
+    if(err && err.name === 'AbortError') return;
+  }
+  const url = URL.createObjectURL(d.blob);
+  const a = document.createElement('a');
+  a.href = url; a.download = nm;
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 60000);
+  toast('Belge indirildi');
+}
+document.getElementById('viewerClose').addEventListener('click', () => closeViewer(false));
+document.getElementById('viewerShare').addEventListener('click', () => { if(viewerDoc) shareDoc(viewerDoc); });
+document.getElementById('viewerImg').addEventListener('click', function(){ this.classList.toggle('zoom'); });
+
+// ---- zip yazma / okuma (dış kütüphane gerekmez, çevrimdışı çalışır) ----
+const CRC_T = (function(){
+  const t = new Uint32Array(256);
+  for(let n = 0; n < 256; n++){
+    let c = n;
+    for(let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1);
+    t[n] = c >>> 0;
+  }
+  return t;
+})();
+function crc32(u8){
+  let c = 0xFFFFFFFF;
+  for(let i = 0; i < u8.length; i++) c = CRC_T[(c ^ u8[i]) & 0xFF] ^ (c >>> 8);
+  return (c ^ 0xFFFFFFFF) >>> 0;
+}
+async function buildZip(entries){
+  const enc = new TextEncoder();
+  const now = new Date();
+  const dosTime = (now.getHours() << 11) | (now.getMinutes() << 5) | (now.getSeconds() >> 1);
+  const dosDate = ((now.getFullYear() - 1980) << 9) | ((now.getMonth() + 1) << 5) | now.getDate();
+  const parts = [], central = [];
+  let offset = 0;
+  for(const e of entries){
+    const nameB = enc.encode(e.name);
+    const size = e.blob.size;
+    if(size > 0xFFFFFFFF || offset > 0xFFFFFFF0) throw new Error('çok büyük');
+    const crc = crc32(new Uint8Array(await e.blob.arrayBuffer()));
+    const lh = new DataView(new ArrayBuffer(30));
+    lh.setUint32(0, 0x04034b50, true); lh.setUint16(4, 20, true); lh.setUint16(6, 0x0800, true);
+    lh.setUint16(8, 0, true); lh.setUint16(10, dosTime, true); lh.setUint16(12, dosDate, true);
+    lh.setUint32(14, crc, true); lh.setUint32(18, size, true); lh.setUint32(22, size, true);
+    lh.setUint16(26, nameB.length, true); lh.setUint16(28, 0, true);
+    parts.push(lh.buffer, nameB, e.blob);
+
+    const ch = new DataView(new ArrayBuffer(46));
+    ch.setUint32(0, 0x02014b50, true); ch.setUint16(4, 20, true); ch.setUint16(6, 20, true);
+    ch.setUint16(8, 0x0800, true); ch.setUint16(10, 0, true); ch.setUint16(12, dosTime, true);
+    ch.setUint16(14, dosDate, true); ch.setUint32(16, crc, true); ch.setUint32(20, size, true);
+    ch.setUint32(24, size, true); ch.setUint16(28, nameB.length, true);
+    ch.setUint32(42, offset, true);
+    central.push(ch.buffer, nameB);
+    offset += 30 + nameB.length + size;
+  }
+  let cdSize = 0;
+  central.forEach(p => { cdSize += p.byteLength !== undefined ? p.byteLength : p.length; });
+  const end = new DataView(new ArrayBuffer(22));
+  end.setUint32(0, 0x06054b50, true);
+  end.setUint16(8, entries.length, true); end.setUint16(10, entries.length, true);
+  end.setUint32(12, cdSize, true); end.setUint32(16, offset, true);
+  return new Blob(parts.concat(central, [end.buffer]), {type:'application/zip'});
+}
+async function readZip(file){
+  const size = file.size;
+  const tailLen = Math.min(size, 70000);
+  const tail = new DataView(await file.slice(size - tailLen, size).arrayBuffer());
+  let eocd = -1;
+  for(let i = tailLen - 22; i >= 0; i--){
+    if(tail.getUint32(i, true) === 0x06054b50){ eocd = i; break; }
+  }
+  if(eocd < 0) throw new Error('zip değil');
+  const count = tail.getUint16(eocd + 10, true);
+  const cdSize = tail.getUint32(eocd + 12, true);
+  const cdOff = tail.getUint32(eocd + 16, true);
+  const cd = new DataView(await file.slice(cdOff, cdOff + cdSize).arrayBuffer());
+  const dec = new TextDecoder();
+  const entries = {};
+  let p = 0;
+  for(let i = 0; i < count; i++){
+    if(cd.getUint32(p, true) !== 0x02014b50) throw new Error('bozuk zip');
+    const method = cd.getUint16(p + 10, true);
+    const csize = cd.getUint32(p + 20, true);
+    const nlen = cd.getUint16(p + 28, true);
+    const elen = cd.getUint16(p + 30, true);
+    const clen = cd.getUint16(p + 32, true);
+    const lo = cd.getUint32(p + 42, true);
+    const name = dec.decode(new Uint8Array(cd.buffer, p + 46, nlen));
+    entries[name] = {method:method, csize:csize, lo:lo};
+    p += 46 + nlen + elen + clen;
+  }
+  async function get(name, type){
+    const e = entries[name];
+    if(!e) return null;
+    const lh = new DataView(await file.slice(e.lo, e.lo + 30).arrayBuffer());
+    const start = e.lo + 30 + lh.getUint16(26, true) + lh.getUint16(28, true);
+    const raw = file.slice(start, start + e.csize);
+    if(e.method === 0) return new Blob([raw], {type:type || ''});
+    if(e.method === 8 && typeof DecompressionStream !== 'undefined'){
+      const b = await new Response(raw.stream().pipeThrough(new DecompressionStream('deflate-raw'))).blob();
+      return type ? new Blob([b], {type:type}) : b;
+    }
+    throw new Error('desteklenmeyen sıkıştırma');
+  }
+  return {names:Object.keys(entries), get:get};
+}
 
 recalc();
 document.getElementById('histCnt').textContent = loadRecs().length;
 updateEditUI();
+loadDocCounts();
 
 if('serviceWorker' in navigator){
   window.addEventListener('load', function(){
