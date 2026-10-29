@@ -854,6 +854,17 @@
     color:var(--navy);
     cursor:pointer;
   }
+  .sybox{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:50;align-items:center;justify-content:center;padding:16px}
+  .sybox.open{display:flex}
+  .sycard{background:#fff;border-radius:14px;padding:16px;width:100%;max-width:380px}
+  .syhead{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;color:var(--navy)}
+  .syhead button{border:0;background:none;font-size:18px}
+  .syp{font-size:13px;margin:6px 0 10px;line-height:1.4}
+  .sycard input{width:100%;box-sizing:border-box;padding:11px;border:1px solid var(--line);border-radius:10px;font-size:15px;margin-bottom:8px}
+  .syrow{display:flex;gap:8px}
+  .syrow button{flex:1;padding:11px;border-radius:10px;border:1px solid var(--line);background:#f3f7fb;font-weight:700;color:var(--navy);font-size:14px}
+  .syadv{margin-top:10px;font-size:12px}
+  .systat{margin-top:10px;font-size:12px;color:#556;min-height:16px;word-break:break-word}
   .toast{
     position:fixed;
     left:50%;
@@ -927,7 +938,7 @@
     <p class="pdf-hint">PDF'i paylaşınca teklif otomatik kaydedilir. Başka yolla gönderdiysen buradan elle kaydedebilirsin.</p>
     <button class="hist-btn" onclick="openHist()">📋 Teklif Geçmişi<span class="cnt" id="histCnt">0</span></button>
     <button class="reset-btn" onclick="resetAll()">Tüm Seçimleri Sıfırla</button>
-    <p class="pdf-hint" style="margin-top:14px;">Sürüm 6 · belgeler, tarih filtresi, sıralama</p>
+    <p class="pdf-hint" style="margin-top:14px;">Sürüm 7 · bulut senkron</p>
   </div>
 
   <!-- RIGHT TEKLIF FORM -->
@@ -1065,6 +1076,7 @@
     <div id="histList"></div>
   </div>
   <div class="hist-foot">
+    <button id="syncBtn">☁️ Senkron</button>
     <button onclick="exportHist()">💾 Yedekle</button>
     <label>📥 Yedekten Yükle<input type="file" id="histImport" accept=".zip,.json,application/zip,application/json" hidden></label>
   </div>
@@ -1082,6 +1094,23 @@
 </div>
 <input type="file" id="docFile" accept="image/*,application/pdf,.pdf" multiple hidden>
 <input type="file" id="docCam" accept="image/*" capture="environment" hidden>
+<!-- SENKRON -->
+<div class="sybox" id="syncBox">
+  <div class="sycard">
+    <div class="syhead"><b>☁️ İki telefonu eşitle</b><button onclick="closeSync()" aria-label="Kapat">✕</button></div>
+    <div id="syOut">
+      <p class="syp">İki telefonda da <b>aynı özel GitHub deposunu</b> ve <b>anahtarı (token)</b> gir. Kayıtlar ve belgeler otomatik eşitlenir.</p>
+      <input id="syRepo" placeholder="Depo: kullanıcıadın/teklif-veri" autocapitalize="off" autocomplete="off">
+      <input id="syTok" type="password" placeholder="Anahtar (github_pat_...)" autocomplete="off">
+      <div class="syrow"><button onclick="syLogin()">Bağlan</button></div>
+    </div>
+    <div id="syIn" style="display:none">
+      <p class="syp">Bağlı depo: <b id="syWho"></b></p>
+      <div class="syrow"><button onclick="syncNow(true)">🔄 Şimdi eşitle</button><button onclick="syLogout()">Bağlantıyı kes</button></div>
+    </div>
+    <div class="systat" id="syStatus"></div>
+  </div>
+</div>
 <div class="toast" id="toast"></div>
 
 <script>
@@ -1367,14 +1396,37 @@ function loadRecs(){
     return r;
   }catch(e){ return []; }
 }
-function saveRecs(list){
+function saveRecs(list, remote){
   try{
+    if(!remote) stampRecs(list);
     localStorage.setItem(HIST_KEY, JSON.stringify(list));
     return true;
   }catch(e){
     toast('Kayıt yapılamadı (tarayıcı depolaması kapalı olabilir)');
     return false;
   }
+}
+/* ---- senkron için değişiklik takibi ---- */
+function lsGet(k, d){ try{ const v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; }catch(e){ return d; } }
+function lsSet(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){} }
+function markDirty(key){ const d = lsGet('tt_dirty_v1', {}); d[key] = 1; lsSet('tt_dirty_v1', d); if(window.syncSoon) syncSoon(); }
+function setTomb(key){ const t = lsGet('tt_tomb_v1', {}); t[key] = Date.now(); lsSet('tt_tomb_v1', t); markDirty(key); }
+function stampRecs(list){
+  let prev = [];
+  try{ prev = JSON.parse(localStorage.getItem(HIST_KEY) || '[]'); }catch(e){}
+  const strip = r => { const c = Object.assign({}, r); delete c.updatedAt; c.durum = normStatus(c.durum); return JSON.stringify(c); };
+  const pm = {};
+  prev.forEach(r => { if(r && r.id) pm[r.id] = strip(r); });
+  const now = Date.now(), seen = {};
+  list.forEach(r => {
+    if(!r || !r.id) return;
+    seen[r.id] = 1;
+    if(pm[r.id] !== strip(r)){
+      r.updatedAt = now; markDirty('r:' + r.id);
+      const t = lsGet('tt_tomb_v1', {}); if(t['r:' + r.id]){ delete t['r:' + r.id]; lsSet('tt_tomb_v1', t); }
+    }
+  });
+  Object.keys(pm).forEach(id => { if(!seen[id]) setTomb('r:' + id); });
 }
 function newId(){ return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
 function qtyId(name){ return 'q_' + name.replace(/\s+/g,'_'); }
@@ -1969,13 +2021,15 @@ async function getDoc(id){
   const db = await docDb();
   return idbReq(db.transaction('docs','readonly').objectStore('docs').get(id));
 }
-async function putDoc(d){
+async function putDoc(d, remote){
+  if(!remote){ d.updatedAt = Date.now(); markDirty('d:' + d.id); }
   const db = await docDb();
   const tx = db.transaction('docs','readwrite');
   tx.objectStore('docs').put(d);
   return txDone(tx);
 }
-async function delDoc(id){
+async function delDoc(id, remote){
+  if(!remote) setTomb('d:' + id);
   const db = await docDb();
   const tx = db.transaction('docs','readwrite');
   tx.objectStore('docs').delete(id);
@@ -1986,7 +2040,7 @@ async function delDocsOf(recId){
   const tx = db.transaction('docs','readwrite');
   const st = tx.objectStore('docs');
   const rq = st.index('recId').getAllKeys(recId);
-  rq.onsuccess = () => { rq.result.forEach(k => st.delete(k)); };
+  rq.onsuccess = () => { rq.result.forEach(k => { st.delete(k); setTomb('d:' + k); }); };
   return txDone(tx);
 }
 async function loadDocCounts(){
@@ -2254,6 +2308,198 @@ async function readZip(file){
   }
   return {names:Object.keys(entries), get:get};
 }
+
+/* ================= BULUT SENKRON (GitHub özel depo) ================= */
+let sy = lsGet('tt_sync_v1', {});   // {token, repo, shas, initPush, lastOk}
+let syBusy = false, syTimer = null, syMsg = '';
+const syOn = () => !!(sy.token && sy.repo);
+function syPersist(){ lsSet('tt_sync_v1', sy); }
+function syStatus(m){ syMsg = m; const el = document.getElementById('syStatus'); if(el) el.textContent = m; const b = document.getElementById('syncBtn'); if(b) b.textContent = syOn() ? '☁️ Senkron ✓' : '☁️ Senkron'; }
+function u8b64(str){ return btoa(unescape(encodeURIComponent(str))); }
+function blobToB64(b){ return new Promise((res, rej) => { const fr = new FileReader(); fr.onload = () => res(String(fr.result).split(',')[1] || ''); fr.onerror = rej; fr.readAsDataURL(b); }); }
+
+async function ghCall(path, opt, raw){
+  opt = opt || {};
+  opt.headers = Object.assign({'Authorization':'Bearer ' + sy.token, 'Accept': raw ? 'application/vnd.github.raw+json' : 'application/vnd.github+json', 'X-GitHub-Api-Version':'2022-11-28'}, opt.headers || {});
+  opt.cache = 'no-store';
+  return fetch('https://api.github.com/repos/' + sy.repo + path, opt);
+}
+function ghErr(r){
+  if(r.status === 401) return 'Anahtar (token) hatalı veya süresi dolmuş';
+  if(r.status === 403 || r.status === 404) return 'Depo bulunamadı veya anahtarın bu depoya yazma izni yok';
+  return 'GitHub hatası ' + r.status;
+}
+async function getTree(){
+  const r = await ghCall('/git/trees/HEAD?recursive=1&t=' + Date.now());
+  if(r.status === 409 || (r.status === 404 && sy.emptyOk)) return {};      // boş depo
+  if(!r.ok) throw new Error(ghErr(r));
+  const j = await r.json(), m = {};
+  (j.tree || []).forEach(x => { if(x.type === 'blob') m[x.path] = x.sha; });
+  return m;
+}
+async function putFile(path, b64, msg, retry){
+  const body = {message: msg || 'sync', content: b64};
+  if(sy.shas[path]) body.sha = sy.shas[path];
+  const r = await ghCall('/contents/' + path, {method:'PUT', body: JSON.stringify(body)});
+  if((r.status === 409 || r.status === 422) && !retry){
+    const t = await getTree(); sy.shas = Object.assign({}, sy.shas); if(t[path]) sy.shas[path] = t[path]; else delete sy.shas[path];
+    return putFile(path, b64, msg, true);
+  }
+  if(!r.ok) throw new Error(ghErr(r));
+  const j = await r.json(); sy.shas[path] = j.content.sha; syPersist();
+}
+async function delFile(path){
+  const sha = sy.shas[path]; if(!sha) return;
+  const r = await ghCall('/contents/' + path, {method:'DELETE', body: JSON.stringify({message:'sync', sha})});
+  if(r.ok || r.status === 404 || r.status === 422) delete sy.shas[path];
+  syPersist();
+}
+
+async function pushAll(){
+  const dirty = lsGet('tt_dirty_v1', {}), tomb = lsGet('tt_tomb_v1', {});
+  const keys = Object.keys(dirty);
+  if(!keys.length) return 0;
+  const rm = {}; loadRecs().forEach(r => rm[r.id] = r);
+  let n = 0, skipped = 0;
+  for(const key of keys){
+    const kind = key[0], id = key.slice(2);
+    if(kind === 'r'){
+      const r = rm[id];
+      const o = r ? {rec:r, updatedAt: r.updatedAt || Date.parse(r.tarih) || 1, deleted:false} : {updatedAt: tomb[key] || Date.now(), deleted:true};
+      await putFile('r/' + id + '.json', u8b64(JSON.stringify(o)));
+    } else {
+      const d = await getDoc(id).catch(() => null);
+      if(d){
+        if(d.size > 20 * 1024 * 1024){ skipped++; delete dirty[key]; lsSet('tt_dirty_v1', dirty); continue; }
+        const meta = Object.assign({}, d); delete meta.blob;
+        await putFile('b/' + id, await blobToB64(d.blob));
+        await putFile('d/' + id + '.json', u8b64(JSON.stringify({meta, updatedAt: d.updatedAt || 1, deleted:false})));
+      } else {
+        await putFile('d/' + id + '.json', u8b64(JSON.stringify({updatedAt: tomb[key] || Date.now(), deleted:true})));
+        if(!sy.shas['b/' + id]){ const t = await getTree(); if(t['b/' + id]) sy.shas['b/' + id] = t['b/' + id]; }
+        await delFile('b/' + id);
+      }
+    }
+    delete dirty[key]; lsSet('tt_dirty_v1', dirty); n++;
+  }
+  if(skipped) toast(skipped + ' çok büyük belge (20 MB üstü) buluta yüklenmedi');
+  return n;
+}
+
+async function pullAll(){
+  const tree = await getTree();
+  const dirty = lsGet('tt_dirty_v1', {}), tomb = lsGet('tt_tomb_v1', {});
+  let got = 0;
+  const paths = Object.keys(tree).filter(p => /^[rd]\/.+\.json$/.test(p) && tree[p] !== sy.shas[p]);
+  paths.sort((a, b) => (a[0] === 'r' ? 0 : 1) - (b[0] === 'r' ? 0 : 1));
+  for(const p of paths){
+    const kind = p[0], id = p.slice(2, -5), key = kind + ':' + id;
+    const r = await ghCall('/contents/' + p, {}, true);
+    if(!r.ok) throw new Error(ghErr(r));
+    let o; try{ o = JSON.parse(await r.text()); }catch(e){ continue; }
+    const ts = o.updatedAt || 0;
+    if(tomb[key] && tomb[key] > ts){ sy.shas[p] = tree[p]; continue; }
+    if(kind === 'r') await applyRec(id, o, ts, dirty); else await applyDoc(id, o, ts, dirty);
+    sy.shas[p] = tree[p]; syPersist(); got++;
+  }
+  return got;
+}
+async function applyRec(id, o, ts, dirty){
+  const list = loadRecs(); const i = list.findIndex(r => r.id === id);
+  const loc = i >= 0 ? list[i] : null;
+  if(loc && (loc.updatedAt || 0) > ts) return;
+  if(o.deleted){ if(i >= 0) list.splice(i, 1); }
+  else if(o.rec){
+    const r = o.rec; r.updatedAt = ts;
+    if(i >= 0) list[i] = r; else list.push(r);
+  }
+  saveRecs(list, true);
+  if(dirty['r:' + id]){ delete dirty['r:' + id]; lsSet('tt_dirty_v1', dirty); }
+}
+async function applyDoc(id, o, ts, dirty){
+  const loc = await getDoc(id).catch(() => null);
+  if(loc && (loc.updatedAt || 0) > ts) return;
+  if(o.deleted){ if(loc) await delDoc(id, true); }
+  else if(o.meta){
+    const r = await ghCall('/contents/b/' + id, {}, true);
+    if(!r.ok) throw new Error(ghErr(r));
+    const raw = await r.blob(); const blob = new Blob([raw], {type: o.meta.type || 'application/octet-stream'});
+    await putDoc(Object.assign(o.meta, {blob, size: blob.size, updatedAt: ts}), true);
+  }
+  if(dirty['d:' + id]){ delete dirty['d:' + id]; lsSet('tt_dirty_v1', dirty); }
+}
+
+async function syncNow(manual){
+  if(!syOn() || syBusy) return;
+  if(!navigator.onLine){ syStatus('Çevrimdışı — internet gelince eşitlenecek'); return; }
+  syBusy = true; syStatus('Eşitleniyor…');
+  try{
+    if(!sy.shas) sy.shas = {};
+    if(!sy.initPush){
+      const dirty = lsGet('tt_dirty_v1', {});
+      loadRecs().forEach(r => dirty['r:' + r.id] = 1);
+      try{ (await allDocs()).forEach(d => dirty['d:' + d.id] = 1); }catch(e){}
+      lsSet('tt_dirty_v1', dirty); sy.initPush = 1; syPersist();
+    }
+    const a = await pullAll();
+    const c = await pushAll();
+    sy.lastOk = Date.now(); syPersist();
+    syStatus('Son eşitleme: ' + new Date(sy.lastOk).toLocaleTimeString('tr-TR', {hour:'2-digit', minute:'2-digit'}) + (a ? ' · ' + a + ' değişiklik alındı' : '') + (c ? ' · ' + c + ' gönderildi' : ''));
+    if(a){
+      document.getElementById('histCnt').textContent = loadRecs().length;
+      if(document.getElementById('histOverlay').classList.contains('open')){ await loadDocCounts(); renderHist(); } else loadDocCounts();
+    }
+    if(manual) toast(a || c ? 'Eşitlendi ✓' : 'Her şey güncel ✓');
+  }catch(e){
+    syStatus('Hata: ' + e.message);
+    if(manual) toast('Eşitleme hatası: ' + e.message);
+  }finally{ syBusy = false; }
+}
+window.syncSoon = function(){
+  if(!syOn()) return;
+  clearTimeout(syTimer); syTimer = setTimeout(() => syncNow(false), 2500);
+};
+
+/* ---- ekran ---- */
+function openSync(){
+  document.getElementById('syRepo').value = sy.repo || '';
+  document.getElementById('syTok').value = '';
+  renderSyncUI();
+  document.getElementById('syncBox').classList.add('open');
+}
+function closeSync(){ document.getElementById('syncBox').classList.remove('open'); }
+function renderSyncUI(){
+  const on = syOn();
+  document.getElementById('syOut').style.display = on ? 'none' : 'block';
+  document.getElementById('syIn').style.display = on ? 'block' : 'none';
+  document.getElementById('syWho').textContent = sy.repo || '';
+  syStatus(syMsg || (on ? 'Bağlı' : 'Bağlı değil'));
+}
+async function syLogin(){
+  const repo = document.getElementById('syRepo').value.trim().replace(/^https?:\/\/github\.com\//, '').replace(/\/$/, '');
+  const tok = document.getElementById('syTok').value.trim();
+  if(!/^[\w.-]+\/[\w.-]+$/.test(repo)){ syStatus('Depo adını "kullanıcı/teklif-veri" şeklinde yaz'); return; }
+  if(tok.length < 20){ syStatus('Anahtarı (github_pat_...) yapıştır'); return; }
+  syStatus('Bağlanılıyor…');
+  const keep = sy; sy = {token: tok, repo, shas:{}};
+  try{
+    const r = await ghCall('');
+    if(!r.ok) throw new Error(ghErr(r));
+    const j = await r.json();
+    if(!j.private){ throw new Error('Bu depo HERKESE AÇIK! Müşteri verisi için sadece özel (Private) depo kullan'); }
+    sy.emptyOk = 1; syPersist(); renderSyncUI(); syncNow(true);
+  }catch(e){ sy = keep; syStatus('Hata: ' + e.message); }
+}
+function syLogout(){
+  if(!confirm('Bağlantı kesilsin mi? Bu telefondaki veriler silinmez, sadece eşitleme durur.')) return;
+  sy = {}; syPersist(); lsSet('tt_dirty_v1', {}); syMsg = ''; renderSyncUI(); syStatus('Bağlı değil');
+}
+document.getElementById('syncBtn').addEventListener('click', openSync);
+document.addEventListener('visibilitychange', () => { if(!document.hidden) syncNow(false); });
+window.addEventListener('online', () => syncNow(false));
+setInterval(() => { if(!document.hidden) syncNow(false); }, 60000);
+if(syOn()) setTimeout(() => syncNow(false), 1500);
+syStatus(syOn() ? 'Bağlı' : '');
 
 recalc();
 document.getElementById('histCnt').textContent = loadRecs().length;
