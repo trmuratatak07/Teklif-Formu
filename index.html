@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="tr">
 <head>
+<script>try{if(localStorage.getItem('tt_pin_v1'))document.documentElement.classList.add('locked')}catch(e){}</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
 <title>Türk Telekom Kurumsal Teklif Hesaplayıcı</title>
@@ -865,6 +866,14 @@
   .syrow button{flex:1;padding:11px;border-radius:10px;border:1px solid var(--line);background:#f3f7fb;font-weight:700;color:var(--navy);font-size:14px}
   .syadv{margin-top:10px;font-size:12px}
   .systat{margin-top:10px;font-size:12px;color:#556;min-height:16px;word-break:break-word}
+  #lock{display:none;position:fixed;inset:0;background:#0b2148;z-index:5000;align-items:center;justify-content:center;flex-direction:column;padding:24px;color:#fff;text-align:center}
+  html.locked #lock{display:flex}
+  html.locked body{overflow:hidden}
+  #lock h2{margin:8px 0 18px;font-size:20px}
+  #lock input{width:200px;text-align:center;font-size:28px;letter-spacing:10px;padding:12px;border-radius:12px;border:0}
+  #lock .lkmsg{min-height:20px;margin:12px 0;font-size:14px;color:#ffd7d7}
+  #lock button{background:none;border:0;color:#9fb8e8;text-decoration:underline;font-size:13px;margin-top:10px}
+  .pinlink{background:none;border:0;color:var(--navy);text-decoration:underline;font-size:13px;margin-top:6px}
   .toast{
     position:fixed;
     left:50%;
@@ -938,7 +947,8 @@
     <p class="pdf-hint">PDF'i paylaşınca teklif otomatik kaydedilir. Başka yolla gönderdiysen buradan elle kaydedebilirsin.</p>
     <button class="hist-btn" onclick="openHist()">📋 Teklif Geçmişi<span class="cnt" id="histCnt">0</span></button>
     <button class="reset-btn" onclick="resetAll()">Tüm Seçimleri Sıfırla</button>
-    <p class="pdf-hint" style="margin-top:14px;">Sürüm 7 · bulut senkron</p>
+    <p class="pdf-hint" style="margin-top:14px;">Sürüm 8 · PIN kilidi, bulut senkron</p>
+    <p style="text-align:center;margin:0"><button class="pinlink" onclick="openPin()">🔒 PIN kilidi</button></p>
   </div>
 
   <!-- RIGHT TEKLIF FORM -->
@@ -1094,6 +1104,26 @@
 </div>
 <input type="file" id="docFile" accept="image/*,application/pdf,.pdf" multiple hidden>
 <input type="file" id="docCam" accept="image/*" capture="environment" hidden>
+<!-- KİLİT -->
+<div id="lock">
+  <div style="font-size:44px">🔒</div>
+  <h2>TT Teklif</h2>
+  <input id="lkIn" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="off" placeholder="PIN">
+  <div class="lkmsg" id="lkMsg"></div>
+  <button id="lkForgot">PIN'i unuttum</button>
+</div>
+<!-- PIN AYARI -->
+<div class="sybox" id="pinBox">
+  <div class="sycard">
+    <div class="syhead"><b>🔒 PIN kilidi</b><button onclick="closePin()" aria-label="Kapat">✕</button></div>
+    <p class="syp" id="pinInfo"></p>
+    <input id="pinCur" type="password" inputmode="numeric" maxlength="6" placeholder="Mevcut PIN" style="display:none">
+    <input id="pinNew" type="password" inputmode="numeric" maxlength="6" placeholder="Yeni PIN (4–6 rakam)">
+    <input id="pinNew2" type="password" inputmode="numeric" maxlength="6" placeholder="Yeni PIN tekrar">
+    <div class="syrow"><button onclick="pinSave()">Kaydet</button><button id="pinRemoveBtn" onclick="pinRemove()" style="display:none">Kilidi kaldır</button></div>
+    <div class="systat" id="pinStat"></div>
+  </div>
+</div>
 <!-- SENKRON -->
 <div class="sybox" id="syncBox">
   <div class="sycard">
@@ -2500,6 +2530,92 @@ window.addEventListener('online', () => syncNow(false));
 setInterval(() => { if(!document.hidden) syncNow(false); }, 60000);
 if(syOn()) setTimeout(() => syncNow(false), 1500);
 syStatus(syOn() ? 'Bağlı' : '');
+
+/* ================= PIN KİLİDİ ================= */
+const PIN_KEY = 'tt_pin_v1';
+let pinSuppress = 0, lkFails = 0;
+async function pinHash(pin, salt){
+  const str = salt + ':' + pin;
+  try{
+    if(window.crypto && crypto.subtle){
+      const h = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(str));
+      return Array.from(new Uint8Array(h)).map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+  }catch(e){}
+  let h = 5381; for(let i = 0; i < str.length; i++) h = ((h << 5) + h + str.charCodeAt(i)) | 0;
+  return 'x' + h;
+}
+const pinCfg = () => lsGet(PIN_KEY, null);
+function lockNow(){
+  if(!pinCfg()) return;
+  document.documentElement.classList.add('locked');
+  const i = document.getElementById('lkIn'); i.value = ''; document.getElementById('lkMsg').textContent = '';
+  setTimeout(() => { try{ i.focus(); }catch(e){} }, 100);
+}
+async function lkCheck(){
+  const c = pinCfg(), i = document.getElementById('lkIn'), m = document.getElementById('lkMsg');
+  if(!c) { document.documentElement.classList.remove('locked'); return; }
+  const wait = lsGet('tt_pinwait', 0) - Date.now();
+  if(wait > 0){ m.textContent = Math.ceil(wait / 1000) + ' sn bekle'; i.value = ''; return; }
+  if(i.value.length < c.len) return;
+  if(await pinHash(i.value, c.salt) === c.hash){
+    lkFails = 0; i.value = ''; m.textContent = '';
+    document.documentElement.classList.remove('locked');
+  } else {
+    lkFails++; i.value = '';
+    if(lkFails >= 5){ lsSet('tt_pinwait', Date.now() + 30000); lkFails = 0; m.textContent = 'Çok fazla hata — 30 sn bekle'; }
+    else m.textContent = 'PIN yanlış';
+  }
+}
+document.getElementById('lkIn').addEventListener('input', lkCheck);
+document.getElementById('lkForgot').addEventListener('click', async function(){
+  if(!confirm('PIN\'i unutursan kilidi kaldırmanın tek yolu bu telefondaki uygulama verilerini silmektir. Veriler bulutta (senkron) veya yedekte varsa geri alabilirsin. Devam edilsin mi?')) return;
+  if(!confirm('SON UYARI: Bu telefondaki tüm kayıtlar ve belgeler silinecek. Emin misin?')) return;
+  try{ localStorage.clear(); }catch(e){}
+  try{ const db = await docDb(); db.close(); }catch(e){}
+  try{ indexedDB.deleteDatabase('tt_belgeler_v1'); }catch(e){}
+  setTimeout(() => location.reload(), 400);
+});
+document.addEventListener('visibilitychange', () => {
+  if(!pinCfg()) return;
+  if(document.hidden){ lsSet('tt_hidden', Date.now()); return; }
+  if(Date.now() > pinSuppress && Date.now() - lsGet('tt_hidden', Date.now()) > 120000) lockNow();
+});
+document.addEventListener('click', e => {
+  if(e.target.closest && e.target.closest('[data-act="doc-cam"],[data-act="doc-file"],[data-act="doc-share"],#shareBtn,#pdfBtn')) pinSuppress = Date.now() + 300000;
+}, true);
+
+function openPin(){
+  const c = pinCfg();
+  document.getElementById('pinCur').style.display = c ? 'block' : 'none';
+  document.getElementById('pinRemoveBtn').style.display = c ? 'block' : 'none';
+  document.getElementById('pinInfo').textContent = c ? 'PIN kilidi açık. Değiştirmek için mevcut PIN\'i ve yeni PIN\'i gir.' : 'Uygulama açılırken ve 2 dakikadan uzun arka planda kaldıktan sonra PIN sorulur.';
+  ['pinCur','pinNew','pinNew2'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('pinStat').textContent = '';
+  document.getElementById('pinBox').classList.add('open');
+}
+function closePin(){ document.getElementById('pinBox').classList.remove('open'); }
+async function pinCheckCur(){
+  const c = pinCfg(); if(!c) return true;
+  return await pinHash(document.getElementById('pinCur').value, c.salt) === c.hash;
+}
+async function pinSave(){
+  const st = document.getElementById('pinStat');
+  const a = document.getElementById('pinNew').value, b = document.getElementById('pinNew2').value;
+  if(!await pinCheckCur()){ st.textContent = 'Mevcut PIN yanlış'; return; }
+  if(!/^\d{4,6}$/.test(a)){ st.textContent = 'PIN 4–6 rakam olmalı'; return; }
+  if(a !== b){ st.textContent = 'PIN\'ler aynı değil'; return; }
+  const salt = Math.random().toString(36).slice(2) + Date.now().toString(36);
+  lsSet(PIN_KEY, {salt, len: a.length, hash: await pinHash(a, salt)});
+  closePin(); toast('PIN kilidi kaydedildi 🔒');
+}
+async function pinRemove(){
+  const st = document.getElementById('pinStat');
+  if(!await pinCheckCur()){ st.textContent = 'Mevcut PIN yanlış'; return; }
+  try{ localStorage.removeItem(PIN_KEY); }catch(e){}
+  closePin(); toast('PIN kilidi kaldırıldı');
+}
+if(pinCfg()) lockNow();
 
 recalc();
 document.getElementById('histCnt').textContent = loadRecs().length;
